@@ -109,7 +109,7 @@
                 success: function (response) {
                     console.log("실험 데이터 전송 성공")
                     console.log(response.processed_data_list)
-                    // loadResult(response.processed_data_list)
+                    loadResult(response.processed_data_list)
                 },
                 error: function (error) {
                     console.log("실험 데이터 전송 실패")
@@ -119,20 +119,17 @@
         });
 
         function loadResult(data) {
-            var processedDataList = data.processed_data_list;
-
+            var processedDataList = data;
+            
             $('#result-container').empty();
 
-            var resultContainer = $('<div class="mt-3">결과? : </div>');
+            var resultContainer = $('<div class="mt-3">결과</div>');
 
             for (var i = 0; i < processedDataList.length; i++) {
                 var processedData = processedDataList[i];
 
                 var resultItem = $('<div>' +
-                    'Type: ' + processedData.type +
-                    ', URL: ' + processedData.url +
-                    ', Result: ' + processedData.result +
-                    ', Processed Data: ' + processedData.processed_data +
+                    i + '번째 테스트' + ', 테스트 결과 : ' + processedData.processed_data +
                     '</div>');
 
                 resultContainer.append(resultItem);
