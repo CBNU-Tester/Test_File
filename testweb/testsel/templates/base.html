@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <script src="{% static 'js/jquery-3.6.4.min.js' %}"></script>
+    {% block head %}
+    {% endblock %}
+    <style>
+        /* 사이드바 */
+        .sidenav {
+            background-color: #ffffff;
+            position: fixed;
+            width: 250px;
+            height: 100%;
+            top: 0;
+            /* 위에 navbar가 없기 때문에 top을 0으로 설정 */
+            left: 0;
+            z-index: 1000;
+            /* 본문 위에 오도록 함 */
+        }
+
+        .nav-item {
+            margin: 5px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        .nav-item a {
+            background-color: #ffffff;
+            padding: 10px;
+            display: block;
+            border-radius: 5px;
+            color: black;
+            box-sizing: border-box;
+            border: 1px solid black;
+            /* 테두리 추가 */
+        }
+
+        .nav-item a:hover {
+            background-color: #ced4da;
+            color: black;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            /* sidenav의 너비에 맞춰 margin-left 설정 */
+            width: calc(100% - 250px);
+            /* sidenav의 너비를 빼고 설정 */
+            height: 100vh;
+            overflow: auto;
+            position: relative;
+            /* position을 설정해야 z-index가 작동합니다. */
+            z-index: 1;
+            /* sidenav보다 아래에 오도록 함 */
+        }
+    </style>
+    {% block style %}
+    {% endblock %}
+</head>
+
+<body>
+
+    {% block main %}
+    {% endblock %}
+
+    {% block script %}
+    {% endblock %}
+</body>
+
+</html>

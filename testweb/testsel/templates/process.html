@@ -1,0 +1,145 @@
+<!-- your_template.html -->
+{% extends 'base.html' %}
+
+{% block head %}
+<!-- ... (your existing head block) ... -->
+{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <form method="post" action="{% url 'process_view' %}" id="url-form">
+        {% csrf_token %}
+
+        <!-- + 버튼 -->
+        <button type="button" class="btn btn-primary mb-2" id="add-url-btn">테스트 추가</button>
+        <button type="submit" class="btn btn-success mb-2">테스트 실행</button>
+        <input type="hidden" id="dynamic-inputs" name="dynamic_inputs">
+
+    </form>
+
+    <div id="result-container" class="mt-3">
+        <!-- 결과가 띄워지는 곳? -->
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function () {
+        var inputCount = 1;
+
+        $('#add-url-btn').click(function () {
+            inputCount++;
+
+            var newContainer = $('<div class="form-group row" id="newContainer-' + inputCount + '"></div>');
+
+            // 타입 설정
+            var newDropdown = $('<div class="col-md-2">' +
+                '<label for="typeSelect-' + inputCount + '">타입 선택</label>' +
+                '<select class="form-control dynamic-typeSelect" id="typeSelect-' + inputCount + '">' +
+                '<option value="process_click_xpath">1. 클릭</option>' +
+                '<option value="process_click_xpath_otherurl">2. 클릭 시 페이지 전환</option>' +
+                '<option value="process_click_xpath_div">3. 클릭 시 요소 탐지</option>' +
+                '</select></div>');
+
+            // URL
+            var newUrl = $('<div class="col-md-4">' +
+                '<label for="url-' + inputCount + '">URL</label>' +
+                '<input type="text" class="form-control dynamic-input" name="url-' + inputCount + '" id="url-' + inputCount + '" required></div>');
+
+            // 타겟
+            var newTarget = $('<div class="col-md-2">' +
+                '<label for="target-' + inputCount + '">Target(Xpath)</label>' +
+                '<input type="text" class="form-control dynamic-input" name="target-' + inputCount + '" id="target-' + inputCount + '"></div>');
+
+            // 입력
+            var newInput = $('<div class="col-md-2">' +
+                '<label for="input-' + inputCount + '">Input</label>' +
+                '<input type="text" class="form-control dynamic-input" name="input-' + inputCount + '" id="input-' + inputCount + '"></div>');
+
+            // 결과
+            var newResult = $('<div class="col-md-2">' +
+                '<label for="result-' + inputCount + '">Result</label>' +
+                '<input type="text" class="form-control dynamic-input" name="result-' + inputCount + '" id="result-' + inputCount + '"></div>');
+
+            // 추가
+            newContainer.append(newDropdown);
+            newContainer.append(newUrl);
+            newContainer.append(newTarget);
+            newContainer.append(newInput);
+            newContainer.append(newResult);
+
+            // 폼에 추가
+            $('#url-form').append(newContainer);
+        });
+
+        // csrf_token 값을 JavaScript 변수에 저장
+        let csrftoken = $('[name=csrfmiddlewaretoken]').val();
+
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": csrftoken }
+        });
+
+        $('#url-form').submit(function (event) {
+            event.preventDefault();
+
+            // 데이터 
+            var dynamicInputs = [];
+            $('.form-group').each(function () {
+                dynamicInputs.push({
+                    'type': $('#typeSelect-' + this.id.split('-')[1]).val(),
+                    'url': $('#url-' + this.id.split('-')[1]).val(),
+                    'target': $('#target-' + this.id.split('-')[1]).val(),
+                    'input': $('#input-' + this.id.split('-')[1]).val(),
+                    'result': $('#result-' + this.id.split('-')[1]).val()
+                });
+            });
+
+            // Ajax
+            var formData = {
+                'dynamic_inputs': dynamicInputs
+            };
+
+            // Ajax 전송
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("실험 데이터 전송 성공")
+                    console.log(response.processed_data_list)
+                    // loadResult(response.processed_data_list)
+                },
+                error: function (error) {
+                    console.log("실험 데이터 전송 실패")
+                    console.error(error);
+                }
+            });
+        });
+
+        function loadResult(data) {
+            var processedDataList = data.processed_data_list;
+
+            $('#result-container').empty();
+
+            var resultContainer = $('<div class="mt-3">결과? : </div>');
+
+            for (var i = 0; i < processedDataList.length; i++) {
+                var processedData = processedDataList[i];
+
+                var resultItem = $('<div>' +
+                    'Type: ' + processedData.type +
+                    ', URL: ' + processedData.url +
+                    ', Result: ' + processedData.result +
+                    ', Processed Data: ' + processedData.processed_data +
+                    '</div>');
+
+                resultContainer.append(resultItem);
+            }
+            $('#result-container').append(resultContainer);
+        }
+
+    });
+</script>
+{% endblock %}
