@@ -1,0 +1,4 @@
+django==5.0.1
+selenium==4.16.0
+pynput==1.7.6
+webdriver_manager==4.0.1

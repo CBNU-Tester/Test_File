@@ -5,14 +5,10 @@ from .selenium_list import process_click_xpath, process_click_xpath_otherurl, pr
 # Create your views here.
 
 import json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 class BaseView(TemplateView):
     template_name = 'base.html'
-
-from django.shortcuts import render
-from django.views.generic import TemplateView
 
 class ProcessView(TemplateView):
     template_name = 'process.html'
@@ -69,4 +65,4 @@ class ProcessView(TemplateView):
             pass
 
         return JsonResponse({'processed_data_list': []})
-
+    

@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'testsel.apps.TestselConfig'
+    'testsel.apps.TestselConfig',
+    'record_test',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = 'testweb.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['testsel/templates','record_test/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
