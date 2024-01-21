@@ -3,6 +3,11 @@
 
 {% block head %}
 <!-- ... (your existing head block) ... -->
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap JS (popper.js is required for dropdowns, tooltips, and popovers) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
 
 {% block main %}
@@ -12,9 +17,37 @@
 
         <!-- + 버튼 -->
         <button type="button" class="btn btn-primary mb-2" id="add-url-btn">테스트 추가</button>
-        <button type="submit" class="btn btn-success mb-2">테스트 실행</button>
-        <input type="hidden" id="dynamic-inputs" name="dynamic_inputs">
+        <button type="button" class="btn btn-success mb-2" id="execute-btn">테스트 실행</button>
+        <button type="button" class="btn btn-success mb-2" id="load-test-btn">테스트 불러오기</button>
 
+        <!-- 불러오기 팝업 모달 -->
+        <div class="modal fade" id="loadTestModal" tabindex="-1" role="dialog" aria-labelledby="loadTestModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loadTestModalLabel">테스트 케이스 불러오기</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- 여기에 서버에서 불러온 테스트 데이터를 표시할 내용 추가 -->
+                        <ul id="loadedTestList" class="list-group">
+                            <!-- 불러온 테스트 데이터가 나열될 자리 -->
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                        <button type="button" class="btn btn-primary" id="load-selected-tests">선택된 테스트 불러오기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-info mb-2" id="save-btn">저장</button> <!-- Save button -->
+
+        <input type="hidden" id="dynamic-inputs" name="dynamic_inputs">
     </form>
 
     <div id="result-container" class="mt-3">
@@ -26,7 +59,7 @@
 {% block script %}
 <script>
     $(document).ready(function () {
-        var inputCount = 1;
+        var inputCount = 0;
 
         $('#add-url-btn').click(function () {
             inputCount++;
@@ -80,13 +113,11 @@
             headers: { "X-CSRFToken": csrftoken }
         });
 
-        $('#url-form').submit(function (event) {
-            event.preventDefault();
-
+        $('#execute-btn').click(function () {
             // 데이터 
-            var dynamicInputs = [];
+            var ExE_dynamicInputs = [];
             $('.form-group').each(function () {
-                dynamicInputs.push({
+                ExE_dynamicInputs.push({
                     'type': $('#typeSelect-' + this.id.split('-')[1]).val(),
                     'url': $('#url-' + this.id.split('-')[1]).val(),
                     'target': $('#target-' + this.id.split('-')[1]).val(),
@@ -97,7 +128,8 @@
 
             // Ajax
             var formData = {
-                'dynamic_inputs': dynamicInputs
+                'dynamic_inputs': ExE_dynamicInputs,
+                'action_type': 'test',
             };
 
             // Ajax 전송
@@ -118,9 +150,173 @@
             });
         });
 
+        $('#save-btn').click(function () {  // 이벤트를 save-btn 클릭 이벤트로 변경
+            var dynamicInputs = [];
+            $('.form-group').each(function () {
+                dynamicInputs.push({
+                    'type': $('#typeSelect-' + this.id.split('-')[1]).val(),
+                    'url': $('#url-' + this.id.split('-')[1]).val(),
+                    'target': $('#target-' + this.id.split('-')[1]).val(),
+                    'input': $('#input-' + this.id.split('-')[1]).val(),
+                    'result': $('#result-' + this.id.split('-')[1]).val()
+                });
+            });
+
+            // Ajax
+            var formData = {
+                'dynamic_inputs': dynamicInputs,
+                'action_type': 'save',
+            };
+
+            console.log(JSON.stringify(formData));
+
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("실험 데이터 전송 성공")
+                },
+                error: function (error) {
+                    console.log("실험 데이터 전송 실패")
+                }
+            });
+        });
+
+        $('#load-test-btn').click(function () {
+            // Ajax
+            var formData = {
+                'action_type': 'load',
+            };
+
+            // Ajax 전송
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("테스트 데이터 불러오기 성공")
+                    console.log(response.loaded_data_list)
+
+                    // 이 부분에서 displayLoadedTests 함수 호출이 누락되었습니다.
+                    displayLoadedTests(response.loaded_data_list);
+                },
+                error: function (error) {
+                    console.log("테스트 데이터 불러오기 실패")
+                    console.error(error);
+                }
+            });
+        });
+
+        function displayLoadedTests(tests) {
+            // 기존 목록 초기화
+            $('#loadedTestList').empty();
+            var selectedTest
+
+            // 서버에서 받아온 테스트 목록을 팝업 내에 표시
+            for (var i = 0; i < tests.length; i++) {
+                var test = tests[i];
+                var listItem = $('<li class="list-group-item">' +
+                    '<input type="checkbox" class="test-checkbox" data-index="' + i + '">' +
+                    '<span>' + test.name + '</span></li>');
+                
+                // 클릭 이벤트 등록
+                listItem.find('.test-checkbox').change(function () {
+                    $(this).parent().toggleClass('active', this.checked);
+                });
+
+                // 목록에 추가
+                $('#loadedTestList').append(listItem);
+            }
+
+            $('#load-selected-tests').click(function () {
+                var selectedTests = [];
+
+                // Get the selected tests
+                $('#loadedTestList li.active').each(function () {
+                    var index = $(this).find('.test-checkbox').data('index');
+                    var selectedTest = tests[index];
+                    selectedTests.push(selectedTest);
+                });
+
+                
+                loadTestData(selectedTests);
+
+                // Close the modal
+                $('#loadTestModal').modal('hide');
+            });
+
+            // 팝업 열기
+            $('#loadTestModal').modal('show');
+        }
+
+        function loadTestData(data) {
+            var loadedDataList = data;
+
+            // 기존에 있는 form-group 요소들을 모두 제거
+            $('.form-group').remove();
+
+            for (var i = 0; i < loadedDataList.length; i++) {
+                var loadedData = loadedDataList[i];
+
+                // 새로운 form-group 요소 추가
+                var newContainer = $('<div class="form-group row" id="newContainer-' + i + '"></div>');
+
+                // 타입 설정
+                var newDropdown = $('<div class="col-md-2">' +
+                    '<label for="typeSelect-' + i + '">타입 선택</label>' +
+                    '<select class="form-control dynamic-typeSelect" id="typeSelect-' + i + '"></select></div>');
+
+                // URL
+                var newUrl = $('<div class="col-md-4">' +
+                    '<label for="url-' + i + '">URL</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="url-' + i + '" id="url-' + i + '" required></div>');
+
+                // 타겟
+                var newTarget = $('<div class="col-md-2">' +
+                    '<label for="target-' + i + '">Target(Xpath)</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="target-' + i + '" id="target-' + i + '"></div>');
+
+                // 입력
+                var newInput = $('<div class="col-md-2">' +
+                    '<label for="input-' + i + '">Input</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="input-' + i + '" id="input-' + i + '"></div>');
+
+                // 결과
+                var newResult = $('<div class="col-md-2">' +
+                    '<label for="result-' + i + '">Result</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="result-' + i + '" id="result-' + i + '"></div>');
+
+                // 옵션 추가
+                newDropdown.find('select').append('<option value="process_click_xpath">1. 클릭</option>');
+                newDropdown.find('select').append('<option value="process_click_xpath_otherurl">2. 클릭 시 페이지 전환</option>');
+                newDropdown.find('select').append('<option value="process_click_xpath_div">3. 클릭 시 요소 탐지</option>');
+
+                // 값 설정
+                newDropdown.find('select').val(loadedData.type);
+                newUrl.find('input').val(loadedData.url);
+                newTarget.find('input').val(loadedData.target);
+                newInput.find('input').val(loadedData.input);
+                newResult.find('input').val(loadedData.result);
+
+                // 추가
+                newContainer.append(newDropdown);
+                newContainer.append(newUrl);
+                newContainer.append(newTarget);
+                newContainer.append(newInput);
+                newContainer.append(newResult);
+
+                // 폼에 추가
+                $('#url-form').append(newContainer);
+            }
+        }
+
+
         function loadResult(data) {
             var processedDataList = data;
-            
+
             $('#result-container').empty();
 
             var resultContainer = $('<div class="mt-3">결과</div>');

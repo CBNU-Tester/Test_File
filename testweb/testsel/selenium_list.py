@@ -115,9 +115,48 @@ def process_click_xpath_div(url, target, input, result_xpath):
 
     return processed_data
  
+ #4. 클릭시 iframe 내부의 로직 탐지
+
+def process_click_xpath_iframe(url, target, input, result_xpath, iframe_xpath):
+    chrome_options = Options()
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get(url)
+
+    try:
+        # 클릭 가능한지 확인
+        target_element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, target))
+        )
+
+        # 클릭
+        target_element.click()
+
+        # iframe으로 전환
+        iframe_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, iframe_xpath))
+        )
+        driver.switch_to.frame(iframe_element)
+
+        # iframe 내부에서의 동작 수행 (예: 로직 탐지)
+        result_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, result_xpath))
+        )
+        processed_data = "성공"
+
+    except TimeoutException:
+        processed_data = "시간초과"
+
+    finally:
+        # 원래의 상위 프레임으로 전환
+        driver.switch_to.default_content()
+        driver.quit()
+
+    return processed_data
+
 
 ##########################################################입력 이벤트###########################################################
 
+# 1. xpath 탐지하여 값만 추가
 def process_send_xpath(url, target, input, result):
     chrome_options = Options()
     driver = webdriver.Chrome(options=chrome_options)
@@ -127,9 +166,6 @@ def process_send_xpath(url, target, input, result):
         input_element = driver.find_element(By.XPATH, target)
         input_element.send_keys(input)  
 
-        target_element = driver.find_element(By.XPATH, target)
-        target_element.click()
-
     except TimeoutException:
         processed_data = "Timeout: Unable to perform the action."
 
@@ -137,4 +173,3 @@ def process_send_xpath(url, target, input, result):
         driver.quit()
 
     return processed_data
-
