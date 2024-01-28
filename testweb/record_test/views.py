@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from .recorder.record import selenium_start
+from django.views.decorators.csrf import csrf_exempt
 import json
 # Create your views here.
 
@@ -12,9 +13,14 @@ def record_start(request):
     selenium_start()
 
 # api for user click component
-# trigger : /recorder/component
+# trigger : /recordes/component
 # return : component xpath
+@csrf_exempt
 def create_test_case(request):
-     data = json.loads(request.body.decode('utf-8'))
-     print(data)
-
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        print(data)
+        # Your view logic here
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+    

@@ -1,5 +1,5 @@
 def get_xpath():
-    xpath_js = """
+    xpath_js = """        
         var blackBar = document.createElement('div');
         blackBar.style.position = 'fixed';
         blackBar.style.top = '0';
@@ -14,31 +14,30 @@ def get_xpath():
         blackBar.innerText = 'Element XPath: ';
         document.body.appendChild(blackBar);
 
-        
         document.addEventListener('mousedown', function (event) {
             var clickedElement = event.target;
 
             var xpath = getXPath(clickedElement);
-
-            console.log('Clicked Element XPath:', xpath);
+            var csrfToken = getCookie('csrftoken');
+            console.log(csrfToken);
             $.ajax({
-                url: '{% url "components" %}',
+                url: 'https://127.0.0.1:8000/records/components/',
                 type: 'POST',
-                data: JSON.stringify(xpath),
                 contentType: 'application/json',
+                data: JSON.stringify({'xpath': xpath }),
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
                 success: function (response) {
-                    console.log("실험 데이터 전송 성공")
-                    //loadResult(response.processed_data_list)
+                    console.log('Request successful:', response);
                 },
                 error: function (error) {
-                    console.log("실험 데이터 전송 실패")
-                    console.error(error);
+                    console.error('Error in the request:', error);
                 }
             });
+            console.log('Clicked Element XPath:', xpath);
             return xpath;
         });
-
-
         document.addEventListener('mouseover', function (event) {
             var clickedElement = event.target;
 
@@ -48,7 +47,6 @@ def get_xpath():
             return xpath;
         });
 
-        
         function getXPath(element) {
             if (element.id !== '')
                 return 'id("' + element.id + '")';
@@ -62,6 +60,38 @@ def get_xpath():
                     return getXPath(element.parentNode) + '/' + element.tagName + '[' + (i + 1) + ']';
             }
         }
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     """
     return xpath_js
 
+def execute_jquery():
+    jquery_js="""
+    javascript:(function() {
+        function l(u, i) {
+            var d = document;
+            if (!d.getElementById(i)) {
+                var s = d.createElement('script');
+                s.src = u;
+                s.id = i;
+                d.body.appendChild(s);
+            }
+        }
+        l('//code.jquery.com/jquery-3.2.1.min.js', 'jquery')
+    })();
+    """
+    return jquery_js

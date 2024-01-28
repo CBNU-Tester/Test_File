@@ -5,9 +5,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 from pynput.mouse import Listener as MouseListener
 from pynput.keyboard import Listener as KeyboardListener
 import threading
-import record_js
+from .record_js import *
 
-get_clicked_element_info_script = record_js.get_xpath()
+get_clicked_element_info_script = get_xpath()
+jquery_script=execute_jquery()
 
 class EventListeners(AbstractEventListener):
     def before_navigate_to(self, url, driver):
@@ -30,7 +31,7 @@ class EventListeners(AbstractEventListener):
 
 
 class MouseThread(threading.Thread):
-    def __init__(self, driver, script):
+    def __init__(self, driver,script):
         super().__init__()
         self.driver = driver
         self.script = script
@@ -38,8 +39,9 @@ class MouseThread(threading.Thread):
     def run(self):
         def on_click(x, y, button, pressed):
             if pressed:
-                print("Navigation to: %s" % self.driver.current_url)
-                xpath = self.driver.execute_script(self.script)
+                # print("Navigation to: %s" % self.driver.current_url)
+                # xpath = self.driver.execute_script(self.script)
+                pass
 
         with MouseListener(on_click=on_click) as mouse_listener:
             mouse_listener.join()
@@ -63,13 +65,21 @@ class KeyboardThread(threading.Thread):
 def selenium_start():
     b = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     d = EventFiringWebDriver(b, EventListeners())
-    mouse_thread = MouseThread(d, get_clicked_element_info_script)
+    
+    
+    d.get('https://www.google.co.kr')
+    # d.implicitly_wait(20)
+    
+    
+    mouse_thread = MouseThread(d,get_clicked_element_info_script)
     keyboard_thread = KeyboardThread(d)
 
     mouse_thread.start()
     keyboard_thread.start()
-    d.get('https://www.google.co.kr')
-    d.implicitly_wait(20)
+    
+    d.execute_script(jquery_script)
+    d.execute_script(get_clicked_element_info_script)
+
     mouse_thread.join()
     keyboard_thread.join()
 
