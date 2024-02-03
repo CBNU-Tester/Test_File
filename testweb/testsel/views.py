@@ -94,8 +94,13 @@ class ProcessView(TemplateView):
 
             return JsonResponse({'save_data_list': save_data_list})
         elif action_type == 'load':  # 
-            loaded_data_list = TestSave.objects.all().values()
-            return JsonResponse({'loaded_data_list': list(loaded_data_list)})    
+            test_names = TestSave.objects.values_list('test_name', flat=True).distinct()
+            return JsonResponse({'test_names': list(test_names)})
+        elif action_type == 'db_load':
+            selected_test_names = data.get('selectedTests', [])
+            filtered_tests = TestSave.objects.filter(test_name__in=selected_test_names).values()
+            return JsonResponse({'data': list(filtered_tests)})
+
         else:
             return JsonResponse({'error': 'Unsupported action type'})
 

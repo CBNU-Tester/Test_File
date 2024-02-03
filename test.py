@@ -14,49 +14,14 @@ chrome_options.add_experimental_option("detach", True)
 # Chrome 웹 드라이버 초기화
 driver = webdriver.Chrome(options=chrome_options)
 
-# 네이버 홈페이지로 이동
-url = 'http://113.198.137.123:8080/UI/analysis/381280/'
+#홈페이지로 이동
+url = 'https://www.historyexam.go.kr/mypage/exam/examAreaListPopup.do?netfunnel_key=7A26481B35E07F18162B0ECBF98E4FB2D0107F38E3209FB9F6F8EB69B91729EF2C918DAB9C0D0767AD84033AD75CBE8616DFE34241063750088460AFAA19C7D76BC326631A0D65E24EA3BAC1034BDD2E50065359E3BB58BA1683B652D53F0FEF1F0EEC2239FD024581E21E8C4DC950B22C37342C30&pageIndex=1&testlevel=1&dspsn=N&lo_code=11&exam_area_code=71'
 driver.get(url)
 
-# 검색 입력 필드가 나타날 때까지 대기
-element = WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.ID, 'ResultInputNum'))
-)
+#해당 xpath 클릭
+//*[@id="searchVO"]/table/tbody/tr/td[4]/a/img
 
-# 검색어 입력 및 엔터키 전송
-element.send_keys('5')
-element.send_keys(Keys.RETURN)
+#해당 xpath 클릭
+/html/body/div/div[2]/div[3]/table/tbody/tr[3]/td[4]/img
 
-# 시간초를 설정하는 곳
-time.sleep(10)
-
-# 초기 URL 가져오기
-initial_url = driver.current_url
-
-# 'next-summary-button' 클래스를 가진 요소를 반복해서 찾아 클릭
-while True:
-    try:
-        # 'next-summary-button' 클래스를 가진 요소가 클릭 가능할 때까지 대기
-        next_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, 'next-summary-button'))
-        )
-        # 'next-summary-button' 클래스를 가진 요소를 클릭
-        next_button.click()
-
-        # URL이 변화했는지 확인
-        if driver.current_url != initial_url:
-            initial_url = driver.current_url
-        else:
-            # URL이 변하지 않으면 메시지를 출력하고 반복문을 종료
-            print("페이지의 끝에 도달했습니다. 더 이상 'next-summary-button'이 없습니다.")
-            break
-
-        # 컨텐츠가 없다면
-        if not driver.find_element(By.ID, 'next-summary-content').text.strip():
-            print("No content in 'next-summary-content'. Exiting the loop.")
-            break
-
-    except TimeoutException:
-        # 'next-summary-button'이 지정된 시간 내에 찾아지지 않을 때 TimeoutException이 발생
-        print("페이지의 끝에 도달했습니다. 더 이상 'next-summary-button'이 없습니다.")
-        break
+해당 활동 무한 반복 

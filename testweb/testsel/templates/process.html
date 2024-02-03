@@ -183,7 +183,7 @@
                 }
             });
         });
-
+        ////////////////////////////////////////////모달창 띄우기//////////////////////////////////////////////
         $('#load-test-btn').click(function () {
             // Ajax
             var formData = {
@@ -198,10 +198,10 @@
                 contentType: 'application/json',
                 success: function (response) {
                     console.log("테스트 데이터 불러오기 성공")
-                    console.log(response.loaded_data_list)
+                    console.log(response.test_names)
 
                     // 이 부분에서 displayLoadedTests 함수 호출이 누락되었습니다.
-                    displayLoadedTests(response.loaded_data_list);
+                    displayLoadedTests(response.test_names);
                 },
                 error: function (error) {
                     console.log("테스트 데이터 불러오기 실패")
@@ -209,7 +209,7 @@
                 }
             });
         });
-
+        ///////////////////////////////////////////모달창 목록 조회//////////////////////////////////////
         function displayLoadedTests(tests) {
             // 기존 목록 초기화
             $('#loadedTestList').empty();
@@ -219,8 +219,8 @@
             for (var i = 0; i < tests.length; i++) {
                 var test = tests[i];
                 var listItem = $('<li class="list-group-item">' +
-                    '<input type="checkbox" class="test-checkbox" data-index="' + i + '">' +
-                    '<span>' + test.name + '</span></li>');
+                    '<input type="checkbox" class="test-checkbox" data-index="' + i +'">' +
+                    '<span>' + test + '</span></li>');
                 
                 // 클릭 이벤트 등록
                 listItem.find('.test-checkbox').change(function () {
@@ -238,11 +238,31 @@
                 $('#loadedTestList li.active').each(function () {
                     var index = $(this).find('.test-checkbox').data('index');
                     var selectedTest = tests[index];
-                    selectedTests.push(selectedTest);
+                    selectedTests.push(selectedTest); //여기에 해당 이름 저장
                 });
 
                 
-                loadTestData(selectedTests);
+                var data = {
+                    'action_type' : 'db_load',
+                    'selectedTests' : selectedTests,
+                };
+
+                console.log(data)
+                $.ajax({
+                    url : '',
+                    type : 'POST',
+                    data : JSON.stringify(data),
+                    contentType : 'application/json',
+                    success : function (response){
+                        console.log(response.data)
+                        loadTestData(response.data)
+                    },
+                    error : function(error){
+                        console.error(error);
+                    }
+
+                });
+                
 
                 // Close the modal
                 $('#loadTestModal').modal('hide');
