@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
 
-{% block main %}
+{% block content %}
 <div class="container mt-5">
     <form method="post" action="{% url 'process_view' %}" id="url-form">
         {% csrf_token %}
@@ -209,7 +209,7 @@
                 }
             });
         });
-        ///////////////////////////////////////////모달창 목록 조회//////////////////////////////////////
+        ///////////////////////////////////////////모달창 목록 조회////////////////////////////////////////
         function displayLoadedTests(tests) {
             // 기존 목록 초기화
             $('#loadedTestList').empty();
