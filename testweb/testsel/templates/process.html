@@ -6,12 +6,10 @@
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Bootstrap JS (popper.js is required for dropdowns, tooltips, and popovers) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container-fluid d-flex justify-content-between p-3">
     <form method="post" action="{% url 'process_view' %}" id="url-form">
         {% csrf_token %}
 

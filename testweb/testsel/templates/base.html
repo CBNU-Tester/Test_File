@@ -3,7 +3,6 @@
 {% load static %}
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -44,20 +43,32 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                데이터 처리
+                테스트
             </div>
 
+            <!-- Nav Item - 정보 불러오기 Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTest"
+                    aria-expanded="true" aria-controls="collapseTest">
+                    <span>대시보드</span>
+                </a>
+                <div id="collapseTest" class="collapse" aria-labelledby="headingInfo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="">테스트 현황</a>
+                    </div>
+                </div>
+            </li>
 
             <!-- Nav Item - 정보 불러오기 Menu -->
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInfo"
                     aria-expanded="true" aria-controls="collapseInfo">
-                    <span>정보 불러오기</span>
+                    <span>테스트 관리</span>
                 </a>
                 <div id="collapseInfo" class="collapse" aria-labelledby="headingInfo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">파일 불러오기</a>
-                        <a class="collapse-item" href="">DB 불러오기</a>
+                        <a class="collapse-item" href="">테스트 생성</a>
+                        <a class="collapse-item" href="">테스트 목록</a>
                     </div>
                 </div>
             </li>
@@ -66,117 +77,13 @@
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePreprocess"
                     aria-expanded="true" aria-controls="collapsePreprocess">
-                    <span>전처리</span>
+                    <span>스케줄 관리</span>
                 </a>
                 <div id="collapsePreprocess" class="collapse" aria-labelledby="headingPreprocess"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">결측치 처리</a>
-                        <a class="collapse-item" href="">정규화</a>
-                        <a class="collapse-item" href="">이상치 처리</a>
-                        <a class="collapse-item" href="">원 핫 인코딩</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - 데이터 품질 검증 Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDataQuality"
-                    aria-expanded="true" aria-controls="collapseDataQuality">
-                    <span>데이터 품질 검증</span>
-                </a>
-                <div id="collapseDataQuality" class="collapse" aria-labelledby="headingDataQuality"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">데이터 속성 검증</a>
-                        <a class="collapse-item" href="">데이터 평가</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - 시각화 Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseVisualization"
-                    aria-expanded="true" aria-controls="collapseVisualization">
-                    <span>시각화</span>
-                </a>
-                <div id="collapseVisualization" class="collapse" aria-labelledby="headingVisualization"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">시간 시각화</a>
-                        <a class="collapse-item" href="">비교 시각화</a>
-                        <a class="collapse-item" href="">관계 시각화</a>
-                        <a class="collapse-item" href="">분포 시각화</a>
-                        <a class="collapse-item" href="">공간 시각화</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                데이터 예측
-            </div>
-
-            <!-- Nav Item - 머신러닝 Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMachineLearning"
-                    aria-expanded="true" aria-controls="collapseMachineLearning">
-                    <span>머신러닝</span>
-                </a>
-                <div id="collapseMachineLearning" class="collapse" aria-labelledby="headingMachineLearning"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">회귀</a>
-                        <a class="collapse-item" href="">분류</a>
-                        <a class="collapse-item" href="">연관 분석</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - 딥러닝 Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDeepLearning"
-                    aria-expanded="true" aria-controls="collapseDeepLearning">
-                    <span>딥러닝</span>
-                </a>
-                <div id="collapseDeepLearning" class="collapse" aria-labelledby="headingDeepLearning"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">인식</a>
-                        <a class="collapse-item" href="">분류</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - 모델 평가 및 시각화 Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseModelEvaluation"
-                    aria-expanded="true" aria-controls="collapseModelEvaluation">
-                    <span>모델 평가 및 시각화</span>
-                </a>
-                <div id="collapseModelEvaluation" class="collapse" aria-labelledby="headingModelEvaluation"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">모델 평가</a>
-                        <a class="collapse-item" href="">모델 예측</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - 딥러닝 응용 분석 예 Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse"
-                    data-target="#collapseDeepLearningAnalysis" aria-expanded="true"
-                    aria-controls="collapseDeepLearningAnalysis">
-                    <span>딥러닝 응용 분석 예</span>
-                </a>
-                <div id="collapseDeepLearningAnalysis" class="collapse" aria-labelledby="headingDeepLearningAnalysis"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">세라믹</a>
+                        <a class="collapse-item" href="">스케줄 생성</a>
+                        <a class="collapse-item" href="">스케줄 관리</a>
                     </div>
                 </div>
             </li>
