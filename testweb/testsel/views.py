@@ -66,3 +66,7 @@ class ProcessView(TemplateView):
 
         return JsonResponse({'processed_data_list': []})
     
+class RecordView(TemplateView):
+    template_name='test.html'
+    
+    
