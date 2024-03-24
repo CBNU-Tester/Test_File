@@ -5,15 +5,11 @@ from .selenium_list import process_click_xpath, process_click_xpath_otherurl, pr
 # Create your views here.
 
 import json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import TestSave
 
 class BaseView(TemplateView):
     template_name = 'base.html'
-
-from django.shortcuts import render
-from django.views.generic import TemplateView
 
 class ProcessView(TemplateView):
     template_name = 'process.html'
@@ -104,4 +100,7 @@ class ProcessView(TemplateView):
         else:
             return JsonResponse({'error': 'Unsupported action type'})
 
-
+    
+    
+class RecordView(TemplateView):
+    template_name='test.html'
