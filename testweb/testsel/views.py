@@ -101,6 +101,5 @@ class ProcessView(TemplateView):
             return JsonResponse({'error': 'Unsupported action type'})
 
     
-    
 class RecordView(TemplateView):
     template_name='test.html'
