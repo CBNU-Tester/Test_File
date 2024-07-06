@@ -12,7 +12,6 @@ cryptography==42.0.3
 distro==1.9.0
 Django==5.0.1
 django-sslserver==0.22
-evdev==1.6.1
 exceptiongroup==1.2.0
 gunicorn==21.2.0
 h11==0.14.0

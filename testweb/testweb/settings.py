@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -75,15 +75,16 @@ WSGI_APPLICATION = 'testweb.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+load_dotenv(dotenv_path=".config/.env", verbose=True)
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', #1
-        'NAME': 'final_project', #2
-        'USER': 'root', #3                      
-        'PASSWORD': '1234',  #4              
-        'HOST': 'localhost',   #5                
-        'PORT': '3306', #6
+        'NAME': os.getenv("DB_NAME"), #2
+        'USER': os.getenv("DB_USER"), #3                      
+        'PASSWORD': os.getenv("DB_PASSWORD"),  #4              
+        'HOST': os.getenv("DB_HOST"),   #5                
+        'PORT': os.getenv("DB_PORT"), #6
     }
 }
 
