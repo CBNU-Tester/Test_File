@@ -21,6 +21,16 @@ class BaseView(TemplateView):
 class ProcessView(TemplateView):
     template_name = 'process.html'
 
+    def get(self, request, *args, **kwargs):
+        test_name = request.GET.get('test_name')
+
+        if test_name:
+            selected_test_names = [test_name]
+            filtered_tests = TestSave.objects.filter(test_name__in=selected_test_names).values()
+            return render(request, self.template_name ,{'data': list(filtered_tests)})
+        
+        return render(request, self.template_name)
+
     def post(self, request, *args, **kwargs):
         processed_data_list = []
         data = json.loads(request.body.decode('utf-8'))
@@ -35,7 +45,6 @@ class ProcessView(TemplateView):
                 main_url = data.get('main_url', '')
                 driver.get(main_url)
 
-                # 메인 페이지 로드 확인
                 try:
                     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
                     main_page_status = "성공"
@@ -80,11 +89,11 @@ class ProcessView(TemplateView):
         elif action_type == 'save':
             save_data_list = []
             main_url = data.get('main_url', '')
-            test_name = data.get('test_name', '')  # 추가
+            test_name = data.get('test_name', '')
             dynamic_inputs_list = data.get('dynamic_inputs', [])
             for item in dynamic_inputs_list:
                 test_save_instance = TestSave(
-                    test_name=test_name,  # 추가
+                    test_name=test_name,
                     type=item.get('type', ''),
                     url=main_url,
                     target=item.get('target', ''),
@@ -92,6 +101,7 @@ class ProcessView(TemplateView):
                     result=item.get('result', ''),
                     test_num='1',  # 임시값
                     test_uid='1',  # 임시값
+                    iframe_xpath=item.get('iframe_xpath', '')  # 추가
                 )
                 test_save_instance.save()
 
@@ -107,11 +117,21 @@ class ProcessView(TemplateView):
 
         elif action_type == 'db_load':
             selected_test_names = data.get('selectedTests', [])
+            
             filtered_tests = TestSave.objects.filter(test_name__in=selected_test_names).values()
             return JsonResponse({'data': list(filtered_tests)})
 
         else:
             return JsonResponse({'error': 'Unsupported action type'}, status=400)
+
+
+class ProcessListView(TemplateView):
+    template_name = 'processList.html'
+
+    def get(self, request, *args, **kwargs):
+        test_names = TestSave.objects.values_list('test_name', flat=True).distinct()
+        return self.render_to_response({'test_names': test_names})
+
 
 class RecordView(TemplateView):
     template_name='test.html'

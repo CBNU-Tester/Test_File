@@ -5,6 +5,19 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Bootstrap JS (필요한 경우 추가) -->
 {% endblock %}
+{% block style %}
+<style>
+    h2 {
+        color: #343a40;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<h2>테스트 케이스 생성</h2>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid d-flex justify-content-between p-3">
@@ -87,13 +100,18 @@
     $(document).ready(function () {
         var inputCount = 0;
 
-        // + 버튼을 클릭하면 테스트 케이스를 추가하는 함수
-        function addTestCase(afterElement) {
+        // Load test data from the context
+        var initialData = {{ data|safe }};
+        if (initialData) {
+            loadTestData(initialData);
+        }
+
+        // Function to add a new test case input row
+        function addTestCase(afterElement, inputData = null) {
             inputCount++;
 
             var newContainer = $('<div class="form-group row" id="newContainer-' + inputCount + '"></div>');
 
-            // 타입 설정
             var newDropdown = $('<div class="col-md-2">' +
                 '<label for="typeSelect-' + inputCount + '">타입 선택</label>' +
                 '<select class="form-control dynamic-typeSelect" id="typeSelect-' + inputCount + '">' +
@@ -104,34 +122,28 @@
                 '<option value="process_send_xpath">5. 값 입력</option>' +
                 '</select></div>');
 
-            // 타겟
             var newTarget = $('<div class="col-md-2">' +
                 '<label for="target-' + inputCount + '">Target(Xpath)</label>' +
                 '<input type="text" class="form-control dynamic-input" name="target-' + inputCount + '" id="target-' + inputCount + '"></div>');
 
-            // 입력
             var newInput = $('<div class="col-md-2">' +
                 '<label for="input-' + inputCount + '">Input</label>' +
                 '<input type="text" class="form-control dynamic-input" name="input-' + inputCount + '" id="input-' + inputCount + '"></div>');
 
-            // 결과
             var newResult = $('<div class="col-md-2">' +
                 '<label for="result-' + inputCount + '">Result</label>' +
                 '<input type="text" class="form-control dynamic-input" name="result-' + inputCount + '" id="result-' + inputCount + '"></div>');
 
-            // 삭제 버튼
             var deleteButton = $('<div class="col-md-1">' +
-                '<label>&nbsp;</label>' +  // This label is for alignment purposes
+                '<label>&nbsp;</label>' +
                 '<button type="button" class="btn btn-danger btn-block remove-test">-</button>' +
                 '</div>');
 
-            // + 버튼
             var addButton = $('<div class="col-md-1">' +
-                '<label>&nbsp;</label>' +  // This label is for alignment purposes
+                '<label>&nbsp;</label>' +
                 '<button type="button" class="btn btn-primary btn-block add-test">+</button>' +
                 '</div>');
 
-            // 추가
             newContainer.append(newDropdown);
             newContainer.append(newTarget);
             newContainer.append(newInput);
@@ -139,30 +151,32 @@
             newContainer.append(deleteButton);
             newContainer.append(addButton);
 
-            // 폼에 추가
+            if (inputData) {
+                newDropdown.find('select').val(inputData.type);
+                newTarget.find('input').val(inputData.target);
+                newInput.find('input').val(inputData.input);
+                newResult.find('input').val(inputData.result);
+            }
+
             if (afterElement) {
                 newContainer.insertAfter(afterElement);
             } else {
                 $('#test-cases-container').append(newContainer);
             }
 
-            // 삭제 버튼 클릭 이벤트 핸들러
-            deleteButton.click(function() {
+            deleteButton.click(function () {
                 newContainer.remove();
             });
 
-            // + 버튼 클릭 이벤트 핸들러
-            addButton.click(function() {
+            addButton.click(function () {
                 addTestCase(newContainer);
             });
         }
 
-        // 초기 테스트 케이스 추가 버튼
         $('#add-url-btn').click(function () {
             addTestCase(null);
         });
 
-        // csrf_token 값을 JavaScript 변수에 저장
         let csrftoken = $('[name=csrfmiddlewaretoken]').val();
 
         $.ajaxSetup({
@@ -170,7 +184,6 @@
         });
 
         $('#execute-btn').click(function () {
-            // 데이터 
             var ExE_dynamicInputs = [];
             $('#test-cases-container .form-group.row').each(function () {
                 ExE_dynamicInputs.push({
@@ -181,14 +194,12 @@
                 });
             });
 
-            // Ajax
             var formData = {
                 'main_url': $('#main-url').val(),
                 'dynamic_inputs': ExE_dynamicInputs,
                 'action_type': 'test',
             };
 
-            // Ajax 전송
             $.ajax({
                 url: '{% url "process_view" %}',
                 type: 'POST',
@@ -252,12 +263,10 @@
         });
 
         $('#load-test-btn').click(function () {
-            // Ajax
             var formData = {
                 'action_type': 'load',
             };
 
-            // Ajax 전송
             $.ajax({
                 url: '{% url "process_view" %}',
                 type: 'POST',
@@ -313,6 +322,11 @@
                     success: function (response){
                         console.log(response.data);
                         loadTestData(response.data);
+                        // Update URL with the test name
+                        if (selectedTests.length > 0) {
+                            var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?test_name=' + encodeURIComponent(selectedTests[0]);
+                            window.history.pushState({ path: newUrl }, '', newUrl);
+                        }
                     },
                     error: function(error){
                         console.error(error);
@@ -329,7 +343,6 @@
             $('#test-cases-container').empty();
 
             if (data.length > 0) {
-                // 첫 번째 요소의 URL 설정
                 $('#main-url').val(data[0].url);
             }
 
@@ -355,12 +368,12 @@
                     '<input type="text" class="form-control dynamic-input" name="result-' + i + '" id="result-' + i + '"></div>');
 
                 var deleteButton = $('<div class="col-md-1">' +
-                    '<label>&nbsp;</label>' +  // This label is for alignment purposes
+                    '<label>&nbsp;</label>' +
                     '<button type="button" class="btn btn-danger btn-block remove-test">-</button>' +
                     '</div>');
 
                 var addButton = $('<div class="col-md-1">' +
-                    '<label>&nbsp;</label>' +  // This label is for alignment purposes
+                    '<label>&nbsp;</label>' +
                     '<button type="button" class="btn btn-primary btn-block add-test">+</button>' +
                     '</div>');
 
@@ -384,8 +397,7 @@
 
                 $('#test-cases-container').append(newContainer);
             }
-            
-            // 동적으로 추가된 요소에 이벤트 핸들러 추가
+
             $('#test-cases-container').on('click', '.remove-test', function () {
                 $(this).closest('.form-group.row').remove();
             });
