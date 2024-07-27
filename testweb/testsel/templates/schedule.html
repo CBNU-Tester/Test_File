@@ -11,7 +11,7 @@
 {% block style %}
 <style>
     h2 {
-        color: #343a40;       
+        color: #343a40;
         font-weight: bold;
         margin-bottom: 20px;
         align-content: center;
@@ -44,7 +44,7 @@
 {% endblock %}
 
 {% block topbar %}
-<h2>테스트 케이스 목록</h2>
+<h2>테스트 스케줄 목록</h2>
 {% endblock %}
 
 {% block content %}
@@ -63,7 +63,7 @@
         $('.test-case-list li').click(function(e){
             e.preventDefault();
             var testName = $(this).data('test-name');
-            var url = "{% url 'process_view' %}?test_name=" + encodeURIComponent(testName);
+            var url = "{% url 'schedule_view' %}?test_name=" + encodeURIComponent(testName);
             window.location.href = url;
         });
     });

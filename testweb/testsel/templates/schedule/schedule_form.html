@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block topbar %}
+<h2>테스트 스케줄 생성</h2>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+  </form>
+{% endblock %}

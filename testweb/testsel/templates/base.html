@@ -12,15 +12,15 @@
     <title>UI 테스트</title>
 
     <!-- Custom fonts for this template-->
-    <link href="{%static 'vendor/fontawesome-free/css/all.min.css'%}" rel="stylesheet" type="text/css">
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,1000&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000&display=swap"
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
-    <link href="{%static 'css/sb-admin-2.min.css'%}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
     {% block head %}
     {% endblock %}
 
@@ -46,26 +46,21 @@
                 테스트
             </div>
 
-            <!-- Nav Item - 정보 불러오기 Menu -->
+            <!-- Nav Item - 대시보드 -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTest"
-                    aria-expanded="true" aria-controls="collapseTest">
+                <a class="nav-link" href="#">
                     <span>대시보드</span>
                 </a>
-                <div id="collapseTest" class="collapse" aria-labelledby="headingInfo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">테스트 현황</a>
-                    </div>
-                </div>
             </li>
 
-            <!-- Nav Item - 정보 불러오기 Menu -->
+            <!-- Nav Item - 테스트 관리 -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInfo"
-                    aria-expanded="true" aria-controls="collapseInfo">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTestManagement"
+                    aria-expanded="true" aria-controls="collapseTestManagement">
                     <span>테스트 관리</span>
                 </a>
-                <div id="collapseInfo" class="collapse" aria-labelledby="headingInfo" data-parent="#accordionSidebar">
+                <div id="collapseTestManagement" class="collapse" aria-labelledby="headingTestManagement"
+                    data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'process_view' %}">테스트 생성</a>
                         <a class="collapse-item" href="{% url 'process_list_view' %}">테스트 목록</a>
@@ -73,21 +68,20 @@
                 </div>
             </li>
 
-            <!-- Nav Item - 전처리 Menu -->
+            <!-- Nav Item - 스케줄 관리 -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePreprocess"
-                    aria-expanded="true" aria-controls="collapsePreprocess">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseScheduleManagement"
+                    aria-expanded="true" aria-controls="collapseScheduleManagement">
                     <span>스케줄 관리</span>
                 </a>
-                <div id="collapsePreprocess" class="collapse" aria-labelledby="headingPreprocess"
+                <div id="collapseScheduleManagement" class="collapse" aria-labelledby="headingScheduleManagement"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">스케줄 생성</a>
-                        <a class="collapse-item" href="">스케줄 관리</a>
+                        <a class="collapse-item" href="{% url 'schedule_create' %}">스케줄 생성</a>
+                        <a class="collapse-item" href="{% url 'schedule_list' %}">스케줄 목록</a>
                     </div>
                 </div>
             </li>
-
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -142,14 +136,14 @@
         {% block script %}
         {% endblock %}
         <!-- Bootstrap core JavaScript-->
-        <script src="{%static 'vendor/jquery/jquery.min.js'%}"></script>
-        <script src="{%static 'vendor/bootstrap/js/bootstrap.bundle.min.js'%}"></script>
+        <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+        <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 
         <!-- Core plugin JavaScript-->
-        <script src="{%static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+        <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
 
         <!-- Custom scripts for all pages-->
-        <script src="{%static 'js/sb-admin-2.min.js' %}"></script>
+        <script src="{% static 'js/sb-admin-2.min.js' %}"></script>
 
 
 </body>

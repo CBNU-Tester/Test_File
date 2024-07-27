@@ -1,8 +1,9 @@
-from django.shortcuts import render
-from django.views.generic import TemplateView
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import TemplateView, ListView, DetailView, View
+from django.http import JsonResponse, HttpResponseBadRequest
 import json
-from .models import TestSave
+from .models import TestSave, TestSchedule, TestResult
+from .forms import TestScheduleForm
 from .selenium_list import (
     process_click_xpath, process_click_xpath_otherurl, 
     process_click_xpath_div, process_click_xpath_iframe,
@@ -27,9 +28,9 @@ class ProcessView(TemplateView):
         if test_name:
             selected_test_names = [test_name]
             filtered_tests = TestSave.objects.filter(test_name__in=selected_test_names).values()
-            return render(request, self.template_name ,{'data': list(filtered_tests)})
+            return render(request, self.template_name, {'data': list(filtered_tests), 'test_name': test_name})
         
-        return render(request, self.template_name)
+        return render(request, self.template_name, {'data': [], 'test_name': None})
 
     def post(self, request, *args, **kwargs):
         processed_data_list = []
@@ -124,7 +125,6 @@ class ProcessView(TemplateView):
         else:
             return JsonResponse({'error': 'Unsupported action type'}, status=400)
 
-
 class ProcessListView(TemplateView):
     template_name = 'processList.html'
 
@@ -132,6 +132,46 @@ class ProcessListView(TemplateView):
         test_names = TestSave.objects.values_list('test_name', flat=True).distinct()
         return self.render_to_response({'test_names': test_names})
 
-
 class RecordView(TemplateView):
     template_name='test.html'
+    
+class TestScheduleCreateView(View):
+    def get(self, request, *args, **kwargs):
+        form = TestScheduleForm()
+        return render(request, 'schedule/schedule_form.html', {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = TestScheduleForm(request.POST)
+        if form.is_valid():
+            schedule = form.save(commit=False)
+            schedule.save()
+            form.save_m2m()  # Many-to-many 관계 저장
+            
+            # 스케줄 시간에 따라 작업 예약
+            if schedule.scheduled_time:
+                from django_q.models import Schedule
+                Schedule.objects.create(
+                    func='my_app.tasks.schedule_test',
+                    args=str(schedule.id),
+                    schedule_type=Schedule.ONCE,
+                    next_run=schedule.scheduled_time,
+                )
+            
+            return redirect('schedule_list')
+        return render(request, 'schedule/schedule_form.html', {'form': form})
+
+class TestScheduleListView(ListView):
+    model = TestSchedule
+    template_name = 'schedule/schedule_list.html'
+    context_object_name = 'schedules'
+
+class TestScheduleDetailView(DetailView):
+    model = TestSchedule
+    template_name = 'schedule/schedule_detail.html'
+    context_object_name = 'schedule'
+
+class TestResultListView(View):
+    def get(self, request, schedule_id, *args, **kwargs):
+        schedule = get_object_or_404(TestSchedule, pk=schedule_id)
+        results = schedule.results.all()
+        return render(request, 'schedule/result_list.html', {'schedule': schedule, 'results': results})
