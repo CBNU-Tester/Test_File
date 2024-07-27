@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Test Schedules</h2>
+  <ul>
+    {% for schedule in schedules %}
+      <li>
+        <a href="{% url 'schedule_detail' schedule.pk %}">{{ schedule.name }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'schedule_create' %}">Create new schedule</a>
+{% endblock %}

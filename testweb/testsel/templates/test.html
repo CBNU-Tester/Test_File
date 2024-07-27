@@ -1,0 +1,72 @@
+<!-- your_template.html -->
+{% extends 'base.html' %}
+
+{% block head %}
+<!-- ... (your existing head block) ... -->
+{% endblock %}
+
+{% block main %}
+<div class="container mt-5">
+    <form method="post" action="{% url 'process_view' %}" id="url-form">
+        {% csrf_token %}
+
+        <!-- + 버튼 -->
+        <button type="button" class="btn btn-primary mb-2" id="add-url-btn">테스트 추가</button>
+        <button type="submit" class="btn btn-success mb-2">테스트 실행</button>
+        <input type="hidden" id="dynamic-inputs" name="dynamic_inputs">
+
+    </form>
+
+    <div id="result-container" class="mt-3">
+        
+    </div>
+    <div class='container'>
+        <iframe src='https://google.com'>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        var blackBar = document.createElement('div');
+        blackBar.style.position = 'fixed';
+        blackBar.style.top = '0';
+        blackBar.style.left = '0';
+        blackBar.style.width = '100%';
+        blackBar.style.height = '30px';
+        blackBar.style.backgroundColor = 'black';
+        blackBar.style.color = 'white';
+        blackBar.style.padding = '5px';
+        blackBar.style.boxSizing = 'border-box';
+        blackBar.style.zIndex = '9999';
+        blackBar.innerText = 'Element XPath: ';
+        document.body.appendChild(blackBar);
+        
+        document.addEventListener('mousedown', function (event) {
+            var clickedElement = event.target;
+            var xpath = getXPath(clickedElement);
+            console.log('Clicked Element XPath:', xpath);
+            return xpath;
+        });
+        document.addEventListener('mouseover', function (event) {
+            var clickedElement = event.target;
+            var xpath = getXPath(clickedElement);
+            
+            blackBar.innerText = 'Current Element XPath: ' + xpath;
+            return xpath;
+        });
+        
+        function getXPath(element) {
+            if (element.id !== '')
+                return 'id("' + element.id + '")';
+            if (element === document.body)
+                return element.tagName;
+            var siblings = element.parentNode.childNodes;
+            for (var i = 0; i < siblings.length; i++) {
+                var sibling = siblings[i];
+                if (sibling === element)
+                    return getXPath(element.parentNode) + '/' + element.tagName + '[' + (i + 1) + ']';
+            }
+        }
+    </script>
+{% endblock %}
