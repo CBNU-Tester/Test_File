@@ -30,6 +30,8 @@ SECRET_KEY = 'django-insecure-^7mtiblaap(8*ih!#zoy0%qmndugst1voj#r0^m)jq#lc)87#l
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CSRF__TRUSTED_ORIGINS=['*']
+
 
 # Application definition
 
@@ -42,18 +44,44 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'testsel.apps.TestselConfig',
     'testrecord.apps.TestrecordConfig',
+    'corsheaders',
     'django_q',  # Django-Q 추가
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL=True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
+
+CORS_ALLOW_HEADERS = (
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+)
 
 ROOT_URLCONF = 'testweb.urls'
 
@@ -75,6 +103,45 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'testweb.wsgi.application'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    # 형식정의
+    'formatters': {
+        'format1': {'format': '[%(asctime)s] %(levelname)s %(message)s','datefmt': "%Y-%m-%d %H:%M:%S"},
+        'format2': {'format': '%(levelname)s %(message)s [%(name)s:%(lineno)s]'},
+    },    
+    'handlers': {
+        # 파일저장
+        'file': {
+                'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(BASE_DIR, 'logs/tester.log'),
+                'encoding': 'UTF-8',
+                'maxBytes': 1024 * 1024 * 5,  # 5 MB
+                'backupCount': 5,
+                'formatter': 'format1',
+                },
+    },
+    'loggers': {
+        #종류
+        'django.server': {
+            'handlers': ['file'],
+            'propagate': False,
+            'level': 'DEBUG',
+        },
+        'django.request': {
+            'handlers':['file'],
+            'propagate': False,
+            'level':'DEBUG',
+        },        
+        '': {
+            'level': 'DEBUG',
+            'handlers': ['file'],
+            'propagate': True,
+        },
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
