@@ -2,8 +2,6 @@
 
 # Created by https://www.toptal.com/developers/gitignore/api/django
 # Edit at https://www.toptal.com/developers/gitignore?templates=django
-### virtual environment ###
-myvenv
 
 ### SSL CONFIG ###
 testweb/.config
@@ -146,7 +144,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+myvenv
 # Spyder project settings
 .spyderproject
 .spyproject

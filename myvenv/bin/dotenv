@@ -1,4 +1,4 @@
-#!/root/Test_File/myvenv/bin/python3
+#!/root/Test_File/myvenv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
