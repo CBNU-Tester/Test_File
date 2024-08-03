@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'testsel.apps.TestselConfig',
     'testrecord.apps.TestrecordConfig',
     'corsheaders',
-    'django_q',  # Django-Q 추가
 ]
 
 MIDDLEWARE = [
