@@ -50,8 +50,8 @@
 {% block content %}
 <div class="container-fluid p-3">
     <ul class="test-case-list" id="test-case-list">
-        {% for test_name in test_names %}
-            <li data-test-name="{{ test_name }}">{{ test_name }}</li>
+        {% for test in tests %}
+            <li data-test-name="{{ test.0 }}">{{ test.1 }}</li>
         {% endfor %}
     </ul>
 </div>
@@ -62,8 +62,8 @@
     $(document).ready(function(){
         $('.test-case-list li').click(function(e){
             e.preventDefault();
-            var testName = $(this).data('test-name');
-            var url = "{% url 'process_view' %}?test_name=" + encodeURIComponent(testName);
+            var testPID = $(this).data('test-name');
+            var url = "{% url 'process_view' %}?tc_pid=" + encodeURIComponent(testPID);
             window.location.href = url;
         });
     });

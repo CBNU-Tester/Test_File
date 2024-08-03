@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'testsel.apps.TestselConfig',
     'testrecord.apps.TestrecordConfig',
+    'accounts',
     'corsheaders',
 ]
 
@@ -87,7 +88,7 @@ ROOT_URLCONF = 'testweb.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['testsel/templates', 'testrecord/templates'],
+        'DIRS': ['testsel/templates', 'testrecord/templates', 'accounts/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -192,15 +193,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Django-Q settings
-Q_CLUSTER = {
-    'name': 'DjangORM',
-    'workers': 8,
-    'recycle': 500,
-    'timeout': 60,
-    'orm': 'default',  # Django ORM을 백엔드로 사용
-    'save_limit': 250,
-    'queue_limit': 500,
-    'label': 'Django Q',
-    'catch_up': False,
-}
+#로그인 경로
+
+LOGIN_REDIRECT_URL = '/testsel/'
+LOGOUT_REDIRECT_URL = '/'

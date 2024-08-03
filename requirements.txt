@@ -16,7 +16,6 @@ Django==5.0.1
 django-cors-headers==4.4.0
 django-picklefield==3.2
 django-sslserver==0.22
-evdev==1.7.1
 exceptiongroup==1.2.0
 gunicorn==21.2.0
 h11==0.14.0

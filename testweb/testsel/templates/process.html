@@ -343,7 +343,7 @@
             $('#test-cases-container').empty();
 
             if (data.length > 0) {
-                $('#main-url').val(data[0].url);
+                $('#main-url').val(data[0].tc_url);
             }
 
             for (var i = 0; i < data.length; i++) {
@@ -383,10 +383,10 @@
                 newDropdown.find('select').append('<option value="process_click_xpath_iframe">4. 클릭 시 iframe 내부 탐지</option>');
                 newDropdown.find('select').append('<option value="process_send_xpath">5. 값 입력</option>');
 
-                newDropdown.find('select').val(loadedData.type);
-                newTarget.find('input').val(loadedData.target);
-                newInput.find('input').val(loadedData.input);
-                newResult.find('input').val(loadedData.result);
+                newDropdown.find('select').val(loadedData.tc_type);
+                newTarget.find('input').val(loadedData.tc_target);
+                newInput.find('input').val(loadedData.tc_input);
+                newResult.find('input').val(loadedData.tc_result);
 
                 newContainer.append(newDropdown);
                 newContainer.append(newTarget);
