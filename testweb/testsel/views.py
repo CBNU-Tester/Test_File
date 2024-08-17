@@ -97,6 +97,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
             save_data_list = []
             main_url = data.get('main_url', '')
             test_name = data.get('test_name', '')
+            test_desciption = data.get('test_description', '')
             dynamic_inputs_list = data.get('dynamic_inputs', [])
 
             # AuthUser 모델에서 사용자 객체를 가져옴
@@ -105,7 +106,8 @@ class ProcessView(LoginRequiredMixin, TemplateView):
             # TcList에 저장
             test_list_instance = TcList(
                 tc_uid=user_instance,  # ForeignKey이므로 AuthUser 객체로 설정
-                tc_name=test_name
+                tc_name=test_name,
+                tc_describe = test_desciption
             )
             test_list_instance.save()  # 데이터 저장 후 tc_pid 생성
             print("TcList 저장 완료") 

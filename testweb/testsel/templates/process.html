@@ -51,8 +51,14 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <label for="test-name" class="col-form-label">테스트 이름:</label>
-                        <input type="text" class="form-control" id="test-name">
+                        <div class="form-group">
+                            <label for="test-name" class="col-form-label">테스트 이름:</label>
+                            <input type="text" class="form-control" id="test-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="test-description" class="col-form-label">설명:</label>
+                            <textarea class="form-control" id="test-description" rows="3"></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
@@ -223,6 +229,8 @@
 
         $('#save-test-name-btn').click(function () {
             var testName = $('#test-name').val();
+            var testDescription = $('#test-description').val();
+
             if (testName.trim() === '') {
                 alert('테스트 이름을 입력해주세요.');
                 return;
@@ -242,6 +250,7 @@
                 'main_url': $('#main-url').val(),
                 'dynamic_inputs': dynamicInputs,
                 'test_name': testName,
+                'test_description': testDescription,
                 'action_type': 'save',
             };
 
