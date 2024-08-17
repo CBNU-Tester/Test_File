@@ -274,9 +274,9 @@
                 contentType: 'application/json',
                 success: function (response) {
                     console.log("테스트 데이터 불러오기 성공")
-                    console.log(response.test_names)
+                    console.log(response.testInfo)
 
-                    displayLoadedTests(response.test_names);
+                    displayLoadedTests(response.testInfo);
                 },
                 error: function (error) {
                     console.log("테스트 데이터 불러오기 실패")
@@ -291,8 +291,8 @@
             for (var i = 0; i < tests.length; i++) {
                 var test = tests[i];
                 var listItem = $('<li class="list-group-item">' +
-                    '<input type="checkbox" class="test-checkbox" data-index="' + i +'">' +
-                    '<span>' + test + '</span></li>');
+                    '<input type="checkbox" class="test-checkbox" data-index="' + test[0] +'">' +
+                    '<span>' + test[1] + '</span></li>');
                 
                 listItem.find('.test-checkbox').change(function () {
                     $(this).parent().toggleClass('active', this.checked);
@@ -302,15 +302,15 @@
             }
 
             $('#load-selected-tests').click(function () {
-                var selectedTests = [];
+                var selectedTest;
                 $('#loadedTestList li.active').each(function () {
                     var index = $(this).find('.test-checkbox').data('index');
-                    selectedTests.push(tests[index]);
+                    selectedTest = index;
                 });
 
                 var data = {
                     'action_type' : 'db_load',
-                    'selectedTests' : selectedTests,
+                    'selectedTest' : selectedTest,
                 };
 
                 console.log(data);
@@ -323,8 +323,8 @@
                         console.log(response.data);
                         loadTestData(response.data);
                         // Update URL with the test name
-                        if (selectedTests.length > 0) {
-                            var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?test_name=' + encodeURIComponent(selectedTests[0]);
+                        if (selectedTest > 0) {
+                            var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?tc_pid=' + encodeURIComponent(selectedTest);
                             window.history.pushState({ path: newUrl }, '', newUrl);
                         }
                     },

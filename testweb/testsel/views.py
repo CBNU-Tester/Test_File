@@ -114,12 +114,12 @@ class ProcessView(LoginRequiredMixin, TemplateView):
             return JsonResponse({'save_data_list': save_data_list})
 
         elif action_type == 'load': #테스트 케이스 생성에서 테스트 케이스 각 이름들 간단하게 불러오는 기능
-            test_names = TcList.objects.filter(tc_uid=user_id).values_list('tc_name', flat=True).distinct()
-            return JsonResponse({'test_names': list(test_names)})
+            testInfo = TcList.objects.filter(tc_uid=user_id).values_list('tc_pid','tc_name').distinct()
+            return JsonResponse({'testInfo': list(testInfo)})
 
         elif action_type == 'db_load': #load에서 버튼을 누르면 그 정보로 테스트 케이스 불러오기
-            selected_test_names = data.get('selectedTests', [])
-            filtered_tests = Tc.objects.filter(tc_uid=user_id, tc_name__in=selected_test_names).values()
+            selectedTestPID = data.get('selectedTest')
+            filtered_tests = Tc.objects.filter(tc_pid=selectedTestPID).values()
             return JsonResponse({'data': list(filtered_tests)})
 
         else:
