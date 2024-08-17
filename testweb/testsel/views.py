@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User  # User 모델 가져오기
 import json
-from .models import TcList, Ts, Tc
+from .models import TcList, Ts, Tc,AuthUser
 from .selenium_list import (
     process_click_xpath, process_click_xpath_otherurl, 
     process_click_xpath_div, process_click_xpath_iframe,
@@ -17,6 +17,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from django.shortcuts import get_object_or_404
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -95,21 +96,47 @@ class ProcessView(LoginRequiredMixin, TemplateView):
             main_url = data.get('main_url', '')
             test_name = data.get('test_name', '')
             dynamic_inputs_list = data.get('dynamic_inputs', [])
-            for item in dynamic_inputs_list:
-                test_save_instance = Tc(
-                    tc_name=test_name,
-                    tc_type=item.get('type', ''),
-                    tc_url=main_url,
-                    tc_target=item.get('target', ''),
-                    tc_input=item.get('input', ''),
-                    tc_result=item.get('result', ''),
-                    tc_uid=user_id  # 사용자 정보 저장
-                )
-                test_save_instance.save()
 
-                save_data_list.append({
-                    'saved_data': f"Save successful for input: {item}",
-                })
+            # AuthUser 모델에서 사용자 객체를 가져옴
+            user_instance = get_object_or_404(AuthUser, pk=user_id)
+
+            # TcList에 저장
+            test_list_instance = TcList(
+                tc_uid=user_instance,  # ForeignKey이므로 AuthUser 객체로 설정
+                tc_name=test_name
+            )
+            test_list_instance.save()  # 데이터 저장 후 tc_pid 생성
+            print("TcList 저장 완료") 
+            print(test_list_instance)
+
+            # 저장된 TcList 객체의 tc_pid 가져오기
+            tc_pid = test_list_instance  # tc_pid는 TcList 인스턴스를 참조해야 함
+
+            for item in dynamic_inputs_list:
+                try:
+                    # Tc에 저장
+                    test_save_instance = Tc(
+                        tc_type=item.get('type', ''),
+                        tc_url=main_url,
+                        tc_target=item.get('target', ''),
+                        tc_input=item.get('input', ''),
+                        tc_result=item.get('result', ''),
+                        tc_pid=tc_pid  # 저장된 TcList의 인스턴스 사용
+                    )
+
+                    # 데이터 저장
+                    test_save_instance.save()
+                    print("Tc 저장 성공: ", test_save_instance)  # 성공 메시지 출력
+
+                    save_data_list.append({
+                        'saved_data': f"Save successful for input: {item}",
+                    })
+                
+                except Exception as e:
+                    print(f"Error saving Tc instance: {e}")  # 오류 메시지 출력
+                    save_data_list.append({
+                        'error': f"Error saving for input: {item}, Error: {str(e)}",
+                    })
 
             return JsonResponse({'save_data_list': save_data_list})
 

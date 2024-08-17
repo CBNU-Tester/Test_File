@@ -117,7 +117,7 @@ class DjangoSession(models.Model):
 
 class Tc(models.Model):
     tc_num = models.AutoField(db_column='TC_Num', primary_key=True)  # Field name made lowercase.
-    tc_pid = models.ForeignKey('TcList', models.DO_NOTHING, db_column='TC_PID', blank=True, null=True)  # Field name made lowercase.
+    tc_pid = models.ForeignKey('TcList', on_delete=models.CASCADE, db_column='TC_PID', blank=True, null=True)  # 부모가 삭제되면 자식도 삭제됨
     tc_type = models.CharField(db_column='TC_Type', max_length=255, blank=True, null=True)  # Field name made lowercase.
     tc_url = models.CharField(db_column='TC_Url', max_length=255, blank=True, null=True)  # Field name made lowercase.
     tc_target = models.CharField(db_column='TC_Target', max_length=255, blank=True, null=True)  # Field name made lowercase.
