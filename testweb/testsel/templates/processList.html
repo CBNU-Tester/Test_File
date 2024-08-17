@@ -27,6 +27,7 @@
         border-radius: 5px;
         transition: background-color 0.3s ease;
         cursor: pointer;
+        position: relative;
     }
     .test-case-list li:hover {
         background-color: #e2e6ea;
@@ -40,6 +41,11 @@
         text-decoration: none;
         color: #0056b3;
     }
+    .btn-container {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -51,13 +57,37 @@
 <div class="container-fluid p-3">
     <ul class="test-case-list" id="test-case-list">
         {% for test in tests %}
-            <li data-test-pid="{{ test.0 }}">
+            <li data-test-pid="{{ test.0 }}" data-test-description="{{ test.2 }}">
                 <span>{{ test.1 }}</span>
-                <button class="btn btn-danger btn-sm float-right delete-btn">삭제</button>
+                <div class="btn-container">
+                    <button class="btn btn-info btn-sm mr-2 view-description-btn">설명</button>
+                    <button class="btn btn-danger btn-sm delete-btn">삭제</button>
+                </div>
             </li>
         {% endfor %}
     </ul>
 </div>
+
+<!-- 설명 modal -->
+<div class="modal fade" id="viewTestDescriptionModal" tabindex="-1" role="dialog" aria-labelledby="viewTestDescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewTestDescriptionModalLabel">테스트 설명</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="test-description-text">설명이 여기에 표시됩니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block script %}
@@ -65,7 +95,7 @@
     $(document).ready(function() {
         // 페이지 이동
         $('.test-case-list li').click(function(e) {
-            if (!$(e.target).hasClass('delete-btn')) {
+            if (!$(e.target).hasClass('delete-btn') && !$(e.target).hasClass('view-description-btn')) {
                 e.preventDefault();
                 var testPID = $(this).data('test-pid');
                 var url = "{% url 'process_view' %}?tc_pid=" + encodeURIComponent(testPID);
@@ -99,6 +129,17 @@
                     }
                 });
             }
+        });
+
+        // 설명 버튼 클릭 처리
+        $('.view-description-btn').click(function(e) {
+            e.stopPropagation();  // 클릭 이벤트 전파 중단
+            var liElement = $(this).closest('li');
+            var description = liElement.data('test-description');
+
+            // 모달에 설명 설정
+            $('#test-description-text').text(description);
+            $('#viewTestDescriptionModal').modal('show');
         });
     });
 </script>
