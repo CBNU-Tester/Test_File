@@ -18,6 +18,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -157,10 +159,26 @@ class ProcessListView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
-        
+        # 사용자와 연결된 테스트 케이스 목록 가져오기
         tests = TcList.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name').distinct()
-        
+        # 테스트 케이스 목록을 템플릿으로 전달
         return self.render_to_response({'tests': tests})
 
+    @method_decorator(csrf_exempt)
+    def post(self, request, *args, **kwargs):
+        # AJAX 요청 확인
+        user_id = get_object_or_404(AuthUser, pk=request.user.id)
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            tc_pid = request.POST.get('tc_pid')
+            try:
+                # 해당 테스트 케이스 삭제
+                test_case = TcList.objects.get(tc_pid=tc_pid, tc_uid=user_id)
+                test_case.delete()
+                return JsonResponse({'success': True})
+            except TcList.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Test case not found.'})
+        return JsonResponse({'success': False, 'message': 'Invalid request.'})
+    
 class RecordView(LoginRequiredMixin, TemplateView):
     template_name='base.html'
