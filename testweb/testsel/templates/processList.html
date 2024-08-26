@@ -114,6 +114,7 @@
                     url: "{% url 'process_list_view' %}",  // 동일 뷰에서 처리
                     type: 'POST',
                     data: {
+                        'action' : 'delete',
                         'tc_pid': testPID,
                         'csrfmiddlewaretoken': '{{ csrf_token }}'
                     },
@@ -131,15 +132,34 @@
             }
         });
 
-        // 설명 버튼 클릭 처리
+        // 설명 버튼 클릭 처리s
         $('.view-description-btn').click(function(e) {
             e.stopPropagation();  // 클릭 이벤트 전파 중단
             var liElement = $(this).closest('li');
-            var description = liElement.data('test-description');
+            var testPID = liElement.data('test-pid');
+;
+            $.ajax({
+                url: "{% url 'process_list_view' %}",
+                type: 'POST',
+                data: {
+                    'action' : 'description',
+                    'tc_pid': testPID,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log(response.description);
+                        $('#test-description-text').text(response.description);
+                        $('#viewTestDescriptionModal').modal('show');
+                    } else {
+                        alert('설명을 불러오는데 실패했습니다.');
+                    }
+                },
 
+            })
             // 모달에 설명 설정
-            $('#test-description-text').text(description);
-            $('#viewTestDescriptionModal').modal('show');
+            //$('#test-description-text').text(description);
+            //$('#viewTestDescriptionModal').modal('show');
         });
     });
 </script>

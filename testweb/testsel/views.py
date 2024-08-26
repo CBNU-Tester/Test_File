@@ -170,16 +170,22 @@ class ProcessListView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         # AJAX 요청 확인
         user_id = get_object_or_404(AuthUser, pk=request.user.id)
+        action = request.POST.get('action', '')
 
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            tc_pid = request.POST.get('tc_pid')
-            try:
-                # 해당 테스트 케이스 삭제
-                test_case = TcList.objects.get(tc_pid=tc_pid, tc_uid=user_id)
-                test_case.delete()
-                return JsonResponse({'success': True})
-            except TcList.DoesNotExist:
-                return JsonResponse({'success': False, 'message': 'Test case not found.'})
+        if action == 'delete':
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                tc_pid = request.POST.get('tc_pid')
+                try:
+                    # 해당 테스트 케이스 삭제
+                    test_case = TcList.objects.get(tc_pid=tc_pid, tc_uid=user_id)
+                    test_case.delete()
+                    return JsonResponse({'success': True})
+                except TcList.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': 'Test case not found.'})
+        elif action == 'description':
+            des = TcList.objects.filter(tc_pid=request.POST.get('tc_pid'))
+            return JsonResponse({'success' : True, 'description': des[0].tc_describe})
+        
         return JsonResponse({'success': False, 'message': 'Invalid request.'})
     
 class RecordView(LoginRequiredMixin, TemplateView):
