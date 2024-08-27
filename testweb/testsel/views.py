@@ -20,6 +20,7 @@ from selenium.common.exceptions import TimeoutException
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from datetime import datetime
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -187,6 +188,67 @@ class ProcessListView(LoginRequiredMixin, TemplateView):
             return JsonResponse({'success' : True, 'description': des[0].tc_describe})
         
         return JsonResponse({'success': False, 'message': 'Invalid request.'})
-    
+
+class ScheduleView(LoginRequiredMixin, TemplateView):
+    template_name = 'schedule.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+    @method_decorator(csrf_exempt)
+    def post(self, request, *args, **kwargs):
+        user_id = request.user.id
+
+        if request.POST.get('action') == 'get_tests':
+            # 현재 사용자가 소유한 테스트 케이스 목록 가져오기
+            tests = TcList.objects.filter(tc_uid=user_id).values('tc_pid', 'tc_name').distinct()
+            return JsonResponse({'tests': list(tests)})
+
+        elif request.content_type == 'application/json':
+            try:
+                data = json.loads(request.body)
+                dynamic_inputs = data.get('dynamic_inputs')
+                tc_pid = data.get('tc_pid')
+                start_date = data.get('start_date')
+                end_date = data.get('end_date')
+                repeat_interval = data.get('repeat_interval')
+                repeat_interval_value = data.get('repeat_interval_value')
+
+                # 시작일과 종료일을 DateTime 형식으로 변환
+                start_date = datetime.strptime(start_date, '%Y-%m-%dT%H:%M')
+                end_date = datetime.strptime(end_date, '%Y-%m-%dT%H:%M')
+
+                # 유저 인스턴스 가져오기
+                user_instance = get_object_or_404(AuthUser, pk=user_id)
+
+                # 스케줄 생성
+                schedule = Ts.objects.create(
+                    tc_uid=user_instance,  # AuthUser 인스턴스를 할당
+                    ts_start=start_date,
+                    ts_end=end_date,
+                    ts_repeat_interver=repeat_interval,
+                    ts_repeat_interval_value=repeat_interval_value
+                )
+
+                # TcList에서 연결된 테스트 케이스 찾기
+                test_case = get_object_or_404(TcList, tc_pid=tc_pid, tc_uid=user_instance)
+                
+                # 스케줄의 테스트 케이스 ID 저장
+                schedule.tc_pid = test_case
+                schedule.save()
+
+                return JsonResponse({'message': '스케줄 저장 성공'}, status=200)
+
+            except Exception as e:
+                print(e)
+                return JsonResponse({'error': '스케줄 저장 중 오류가 발생했습니다.'}, status=400)
+
+        return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
+
+
+class ScheduleListView(LoginRequiredMixin, TemplateView):
+    template_name = 'scheduleList.html'
+
 class RecordView(LoginRequiredMixin, TemplateView):
     template_name='base.html'

@@ -146,8 +146,8 @@ class Ts(models.Model):
     tc_uid = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='TC_UID', blank=True, null=True)  # Field name made lowercase.
     ts_start = models.DateTimeField(db_column='TS_Start', blank=True, null=True)  # Field name made lowercase.
     ts_end = models.DateTimeField(db_column='TS_End', blank=True, null=True)  # Field name made lowercase.
-    ts_iter = models.CharField(db_column='TS_Iter', max_length=255, blank=True, null=True)  # Field name made lowercase.
-    ts_day = models.CharField(db_column='TS_Day', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    ts_repeat_interver = models.CharField(db_column='TS_Repeat_Interver', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    ts_repeat_interval_value = models.CharField(db_column='TS_Repeat_Interval_value', max_length=255, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False

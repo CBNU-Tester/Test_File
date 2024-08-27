@@ -23,7 +23,8 @@
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
     {% block head %}
     {% endblock %}
-
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
     {% block style %}
     {% endblock %}
 </head>
@@ -77,8 +78,8 @@
                 <div id="collapseScheduleManagement" class="collapse" aria-labelledby="headingScheduleManagement"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="">스케줄 생성</a>
-                        <a class="collapse-item" href="">스케줄 목록</a>
+                        <a class="collapse-item" href="{% url 'schedule_view' %}">스케줄 생성</a>
+                        <a class="collapse-item" href="{% url 'schedule_list_view'}">스케줄 목록</a>
                     </div>
                 </div>
             </li>
