@@ -1,3 +1,4 @@
+from urllib import request
 from background_task import background
 from testsel.models import Ts, Tc, TcResult
 from testsel.selenium_list import (
@@ -14,6 +15,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from django.shortcuts import get_object_or_404
+from ..testsel.models import TcList, Ts, Tc,AuthUser,TcResult
 
 def get_next_run_times(schedule):
     now = make_aware(datetime.now())
@@ -68,7 +71,10 @@ def check_and_run_scheduled_tests():
                 break  # 이미 실행했으므로 다음 스케줄로 이동
 
 def run_test_case(schedule):
+    
+    user_id = request.user.id
     test_cases = Tc.objects.filter(tc_pid=schedule.tc_pid)
+    tc_instance = TcList.objects.get(tc_pid=schedule.tc_pid)
 
     for tc in test_cases:
         try:
@@ -115,7 +121,8 @@ def run_test_case(schedule):
         finally:
             # 결과를 TcResult 모델에 저장
             TcResult.objects.create(
-                test_pid=schedule.tc_pid,  # TcList의 tc_pid를 사용
+                test_pid=tc_instance,
+                test_uid = get_object_or_404(AuthUser, pk=user_id),
                 test_result=main_page_status,
                 failure_reason=failure_reason
             )

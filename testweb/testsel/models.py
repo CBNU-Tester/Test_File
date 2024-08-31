@@ -158,6 +158,8 @@ class TcResult(models.Model):
     test_pid = models.ForeignKey('TcList', on_delete=models.CASCADE, db_column='Test_PID')  # 실행된 테스트의 ID
     test_result = models.CharField(max_length=255)  # 테스트 최종 결과 (성공/실패)
     failure_reason = models.TextField(blank=True, null=True)  # 실패 사유 (성공 시 빈 값일 수 있음)
+    test_time = models.DateTimeField(auto_now_add=True)  # 테스트 실행 시간
+    test_uid = models.ForeignKey(AuthUser, on_delete=models.CASCADE,db_column='test_uid')  # 사용자 ID
 
     class Meta:
         db_table = 'tc_result'

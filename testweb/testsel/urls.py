@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import (
-    BaseView, ProcessView, ProcessListView, RecordView, ScheduleView, ScheduleListView
+    BaseView, ProcessView, ProcessListView, 
+    RecordView, ScheduleView, ScheduleListView,
+    ResultListView
 )
 
 urlpatterns = [
@@ -10,4 +12,5 @@ urlpatterns = [
     path('processList/', ProcessListView.as_view(), name='process_list_view'),
     path('schedule/', ScheduleView.as_view(), name='schedule_view'),
     path('scheduleList/', ScheduleListView.as_view(), name='schedule_list_view'),
+    path('resultList/', ResultListView.as_view(), name='result_list_view'),
 ]

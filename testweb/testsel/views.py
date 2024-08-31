@@ -126,6 +126,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                 # Save results
                 TcResult.objects.create(
                     test_pid=tc_instance,
+                    test_uid = get_object_or_404(AuthUser, pk=user_id),
                     test_result=test_final_result,
                     failure_reason=failure_reason
                 )
@@ -289,6 +290,16 @@ class ScheduleView(LoginRequiredMixin, TemplateView):
 
 class ScheduleListView(LoginRequiredMixin, TemplateView):
     template_name = 'scheduleList.html'
+
+class ResultListView(LoginRequiredMixin, TemplateView):
+    template_name = 'resultList.html'
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.user.id
+        # 사용자와 연결된 테스트 케이스 목록 가져오기
+        tests = TcResult.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name').distinct()
+        # 테스트 케이스 목록을 템플릿으로 전달
+        return self.render_to_response({'tests': tests})
 
 class RecordView(LoginRequiredMixin, TemplateView):
     template_name='base.html'
