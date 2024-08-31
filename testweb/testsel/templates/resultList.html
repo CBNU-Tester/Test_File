@@ -54,20 +54,37 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-3">
-    <ul class="test-case-list" id="test-case-list">
-        {% for test in tests %}
-            <li data-result-pid="{{ test.0 }}" data-result-description="{{ test.2 }}">
-                <span>{{ test.1 }}</span>
-                <div class="btn-container">
-                    <button class="btn btn-info btn-sm mr-2 view-description-btn">설명</button>
-                    <button class="btn btn-danger btn-sm delete-btn">삭제</button>
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <ul class="list-group" id="test-case-list">
+                {% for test in tests %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center mb-3 shadow-sm" data-result-pid={{test.result_id}}>
+                        <div>
+                            <h5 class="mb-1">테스트 이름: {{ test.test_name }}</h5>
+                            <p class="mb-1 text-muted">시간: {{ test.test_time }}</p>
+                            <p class="mb-1">결과: 
+                                {% if test.test_result == "성공" %}
+                                    <span class="badge badge-success">성공</span>
+                                {% else %}
+                                    <span class="badge badge-danger">실패</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="btn-container">
+                            <button class="btn btn-info btn-sm mr-2 view-description-btn" title="설명 보기">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm delete-btn" title="삭제">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
-
 <!-- 설명 modal -->
 <div class="modal fade" id="viewTestDescriptionModal" tabindex="-1" role="dialog" aria-labelledby="viewTestDescriptionModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -93,16 +110,6 @@
 {% block script %}
 <script type="text/javascript">
     $(document).ready(function() {
-        // 페이지 이동
-        $('.test-case-list li').click(function(e) {
-            if (!$(e.target).hasClass('delete-btn') && !$(e.target).hasClass('view-description-btn')) {
-                e.preventDefault();
-                var testPID = $(this).data('result-pid');
-                var url = "{% url 'process_view' %}?tc_pid=" + encodeURIComponent(testPID);
-                window.location.href = url;
-            }
-        });
-
         // 삭제 버튼 클릭 처리
         $('.delete-btn').click(function(e) {
             e.stopPropagation();  // 클릭 이벤트 전파 중단

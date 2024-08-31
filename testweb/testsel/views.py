@@ -297,9 +297,47 @@ class ResultListView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
         # 사용자와 연결된 테스트 케이스 목록 가져오기
-        tests = TcResult.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name').distinct()
-        # 테스트 케이스 목록을 템플릿으로 전달
-        return self.render_to_response({'tests': tests})
+        tests = TcResult.objects.filter(test_uid=user_id).values_list()
+        
+        #맨 마지막에 TC_LIST에서 가져온테스트 이름 추가하기
+        
+        test_data = []
 
+        for test in tests:
+            test_name = TcList.objects.filter(tc_pid=test[1]).values_list('tc_name')
+            test_info = {
+                'result_id': test[0],
+                'test_pid': test[1],
+                'test_uid': test[5],
+                'failure_reason': test[3],
+                'test_time': test[4],
+                'test_result' : test[2],
+                'test_name' : test_name[0][0]
+            }
+            test_data.append(test_info)
+        # 테스트 케이스 목록을 템플릿으로 전달
+        return self.render_to_response({'tests': test_data})
+    
+    def post(self, request):
+        user_id = request.user.id
+        action = request.POST.get('action', '')
+
+        if action == 'delete':
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                result_id = request.POST.get('result_id')
+                try:
+                    # 해당 테스트 결과 삭제
+                    test_case = TcResult.objects.get(result_id=result_id, test_uid=user_id)
+                    test_case.delete()
+                    return JsonResponse({'success': True})
+                except TcResult.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': 'Test case not found.'})
+        elif action == 'description':
+            des = TcResult.objects.filter(result_id=request.POST.get('result_id'))
+            print(des)
+            return JsonResponse({'success' : True, 'description': des[0].failure_reason})
+        
+        return JsonResponse({'success': False, 'message': 'Invalid request.'})
+    
 class RecordView(LoginRequiredMixin, TemplateView):
     template_name='base.html'
