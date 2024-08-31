@@ -54,7 +54,7 @@
                 <select class="form-control" id="repeat-interval" name="repeat-interval" required>
                     <option value="daily">매일</option>
                     <option value="weekly">매주</option>
-                    <option value="hourly">몇 시간마다</option>
+                    <option value="monthly">매달</option>
                 </select>
             </div>
 
@@ -182,7 +182,7 @@
         $('#save-btn').click(function () {
             
             var testPID = $('#loadedTestList input:checked').val();
-            
+
             var dynamicInputs = [];
             $('#test-cases-container .form-group.row').each(function () {
                 dynamicInputs.push($(this).find('input').val());

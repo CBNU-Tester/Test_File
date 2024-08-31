@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User  # User 모델 가져오기
 import json
-from .models import TcList, Ts, Tc,AuthUser
+from .models import TcList, Ts, Tc,AuthUser,TcResult
 from .selenium_list import (
     process_click_xpath, process_click_xpath_otherurl, 
     process_click_xpath_div, process_click_xpath_iframe,
@@ -46,6 +46,17 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
         if action_type == 'test':
             try:
+                data = json.loads(request.body)
+
+                # Get tc_pid from query parameters
+                tc_pid = data.get('tc_pid')
+
+                if not tc_pid:
+                    return JsonResponse({'error': 'Missing tc_pid parameter'}, status=400)
+                
+                # Fetch test case
+                tc_instance = get_object_or_404(TcList, tc_pid=tc_pid)
+
                 chrome_options = Options()
                 chrome_options.add_experimental_option("detach", True)
                 driver = webdriver.Chrome(options=chrome_options)
@@ -58,41 +69,73 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                     main_page_status = "성공"
                 except TimeoutException:
                     main_page_status = "시간초과"
-                
+
+                # Initialize success flag and failure reasons
+                all_success = True
+                failure_reasons = []
+
                 dynamic_inputs_list = data.get('dynamic_inputs', [])
+                processed_data_list = []
+
                 for item in dynamic_inputs_list:
                     process_type = item.get('type')
                     target = item.get('target')
                     input_data = item.get('input')
                     result = item.get('result')
-                    iframe_xpath = item.get('iframe_xpath', '')  # 추가
+                    iframe_xpath = item.get('iframe_xpath', '')
 
-                    if process_type == 'process_click_xpath':
-                        processed_data = process_click_xpath(driver, main_url, target, input_data, result)
-                    elif process_type == 'process_click_xpath_otherurl':
-                        processed_data = process_click_xpath_otherurl(driver, main_url, target, input_data, result)
-                    elif process_type == 'process_click_xpath_div':
-                        processed_data = process_click_xpath_div(driver, main_url, target, input_data, result)
-                    elif process_type == 'process_click_xpath_iframe':
-                        processed_data = process_click_xpath_iframe(driver, main_url, target, input_data, result, iframe_xpath)
-                    elif process_type == 'process_send_xpath':
-                        processed_data = process_send_xpath(driver, main_url, target, input_data, result)
-                    else:
-                        processed_data = f"Unsupported process type: {process_type}"
+                    try:
+                        if process_type == 'process_click_xpath':
+                            processed_data = process_click_xpath(driver, main_url, target, input_data, result)
+                        elif process_type == 'process_click_xpath_otherurl':
+                            processed_data = process_click_xpath_otherurl(driver, main_url, target, input_data, result)
+                        elif process_type == 'process_click_xpath_div':
+                            processed_data = process_click_xpath_div(driver, main_url, target, input_data, result)
+                        elif process_type == 'process_click_xpath_iframe':
+                            processed_data = process_click_xpath_iframe(driver, main_url, target, input_data, result, iframe_xpath)
+                        elif process_type == 'process_send_xpath':
+                            processed_data = process_send_xpath(driver, main_url, target, input_data, result)
+                        else:
+                            processed_data = f"Unsupported process type: {process_type}"
 
-                    processed_data_list.append({
-                        'type': process_type,
-                        'target': target,
-                        'input': input_data,
-                        'result': result,
-                        'processed_data': processed_data,
-                    })
+                        # Append processed data to list
+                        processed_data_list.append({
+                            'type': process_type,
+                            'target': target,
+                            'input': input_data,
+                            'result': result,
+                            'processed_data': processed_data,
+                        })
+
+                        # Check if processed data indicates a failure
+                        if processed_data != "성공":
+                            all_success = False
+                            failure_reasons.append(f"Type: {process_type}, Target: {target}, Result: {processed_data}")
+
+                    except Exception as e:
+                        print(f"Error processing item {item}: {e}")
+                        all_success = False
+                        failure_reasons.append(f"Error processing item {item}: {e}")
 
                 driver.quit()
+
+                # Determine final test result
+                test_final_result = "성공" if all_success else "실패"
+                failure_reason = "; ".join(failure_reasons) if not all_success else ""
+
+                # Save results
+                TcResult.objects.create(
+                    test_pid=tc_instance,
+                    test_result=test_final_result,
+                    failure_reason=failure_reason
+                )
+
                 return JsonResponse({'processed_data_list': processed_data_list})
 
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
 
         elif action_type == 'save':
             save_data_list = []
@@ -111,8 +154,6 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                 tc_describe = test_desciption
             )
             test_list_instance.save()  # 데이터 저장 후 tc_pid 생성
-            print("TcList 저장 완료") 
-            print(test_list_instance)
 
             # 저장된 TcList 객체의 tc_pid 가져오기
             tc_pid = test_list_instance  # tc_pid는 TcList 인스턴스를 참조해야 함
@@ -245,7 +286,6 @@ class ScheduleView(LoginRequiredMixin, TemplateView):
                 return JsonResponse({'error': '스케줄 저장 중 오류가 발생했습니다.'}, status=400)
 
         return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
-
 
 class ScheduleListView(LoginRequiredMixin, TemplateView):
     template_name = 'scheduleList.html'

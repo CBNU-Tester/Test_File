@@ -152,3 +152,12 @@ class Ts(models.Model):
     class Meta:
         managed = False
         db_table = 'ts'
+
+class TcResult(models.Model):
+    result_id = models.AutoField(primary_key=True)  # 고유 PK
+    test_pid = models.ForeignKey('TcList', on_delete=models.CASCADE, db_column='Test_PID')  # 실행된 테스트의 ID
+    test_result = models.CharField(max_length=255)  # 테스트 최종 결과 (성공/실패)
+    failure_reason = models.TextField(blank=True, null=True)  # 실패 사유 (성공 시 빈 값일 수 있음)
+
+    class Meta:
+        db_table = 'tc_result'

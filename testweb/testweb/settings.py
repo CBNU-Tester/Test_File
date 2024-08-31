@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'testrecord.apps.TestrecordConfig',
     'accounts',
     'corsheaders',
+    'background_task',
 ]
 
 MIDDLEWARE = [
@@ -198,3 +199,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/testsel/'
 LOGOUT_REDIRECT_URL = '/'
+
+#스케줄 관리
+
+
+import django
+django.setup()
+
+# 스케줄러가 시작할 때 기본 스케줄 체크 작업 등록
+from .tasks import check_and_run_scheduled_tests
+
+def start_scheduler():
+    check_and_run_scheduled_tests(repeat=60)
