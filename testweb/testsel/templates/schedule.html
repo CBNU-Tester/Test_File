@@ -36,31 +36,9 @@
 
         <!-- 시작일자와 종료일자 선택 필드 -->
         <div class="form-group row mt-3">
-            <label for="start-datetime" class="col-md-2 col-form-label">시작일자 및 시간</label>
+            <label for="schedule-time" class="col-md-2 col-form-label">스케줄 시간</label>
             <div class="col-md-4">
-                <input type="datetime-local" class="form-control" id="start-datetime" name="start-datetime" required>
-            </div>
-
-            <label for="end-datetime" class="col-md-2 col-form-label">종료일자 및 시간</label>
-            <div class="col-md-4">
-                <input type="datetime-local" class="form-control" id="end-datetime" name="end-datetime" required>
-            </div>
-        </div>
-
-        <!-- 반복 주기 선택 필드 -->
-        <div class="form-group row mt-3">
-            <label for="repeat-interval" class="col-md-2 col-form-label">반복 주기</label>
-            <div class="col-md-4">
-                <select class="form-control" id="repeat-interval" name="repeat-interval" required>
-                    <option value="daily">매일</option>
-                    <option value="weekly">매주</option>
-                    <option value="monthly">매달</option>
-                </select>
-            </div>
-
-            <label for="repeat-interval-value" class="col-md-2 col-form-label">반복 간격</label>
-            <div class="col-md-4">
-                <input type="number" class="form-control" id="repeat-interval-value" name="repeat-interval-value" min="1" placeholder="주기 간격 입력 (일/시간)">
+                <input type="datetime-local" class="form-control" id="schedule-time" name="schedule-time" required>
             </div>
         </div>
 
@@ -180,7 +158,6 @@
 
         // 스케줄 저장 버튼 클릭 시, 데이터 전송
         $('#save-btn').click(function () {
-            
             var testPID = $('#loadedTestList input:checked').val();
 
             var dynamicInputs = [];
@@ -192,10 +169,7 @@
                 'csrfmiddlewaretoken': getCSRFToken(),
                 'tc_pid' : testPID,
                 'dynamic_inputs': dynamicInputs,
-                'start_date': $('#start-datetime').val(),
-                'end_date': $('#end-datetime').val(),
-                'repeat_interval': $('#repeat-interval').val(),
-                'repeat_interval_value': $('#repeat-interval-value').val(),
+                'schedule_time': $('#schedule-time').val(), // 변경된 필드 이름
             };
 
             console.log(JSON.stringify(formData));

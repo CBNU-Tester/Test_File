@@ -125,7 +125,6 @@ class Tc(models.Model):
     tc_result = models.TextField(db_column='TC_Result', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
         db_table = 'tc'
 
 
@@ -136,7 +135,6 @@ class TcList(models.Model):
     tc_describe = models.TextField(db_column='TC_Describe', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
         db_table = 'tc_list'
 
 
@@ -144,13 +142,9 @@ class Ts(models.Model):
     ts_num = models.AutoField(db_column='TS_Num', primary_key=True)  # Field name made lowercase.
     tc_pid = models.ForeignKey(TcList, models.DO_NOTHING, db_column='TC_PID', blank=True, null=True)  # Field name made lowercase.
     tc_uid = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='TC_UID', blank=True, null=True)  # Field name made lowercase.
-    ts_start = models.DateTimeField(db_column='TS_Start', blank=True, null=True)  # Field name made lowercase.
-    ts_end = models.DateTimeField(db_column='TS_End', blank=True, null=True)  # Field name made lowercase.
-    ts_repeat_interver = models.CharField(db_column='TS_Repeat_Interver', max_length=255, blank=True, null=True)  # Field name made lowercase.
-    ts_repeat_interval_value = models.CharField(db_column='TS_Repeat_Interval_value', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    ts_time = models.DateTimeField(db_column='TS_Time', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
         db_table = 'ts'
 
 class TcResult(models.Model):

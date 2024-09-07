@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from datetime import datetime
+from django.utils.dateparse import parse_datetime
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -252,14 +253,10 @@ class ScheduleView(LoginRequiredMixin, TemplateView):
                 data = json.loads(request.body)
                 dynamic_inputs = data.get('dynamic_inputs')
                 tc_pid = data.get('tc_pid')
-                start_date = data.get('start_date')
-                end_date = data.get('end_date')
-                repeat_interval = data.get('repeat_interval')
-                repeat_interval_value = data.get('repeat_interval_value')
+                ts_time = data.get('schedule_time')
 
-                # 시작일과 종료일을 DateTime 형식으로 변환
-                start_date = datetime.strptime(start_date, '%Y-%m-%dT%H:%M')
-                end_date = datetime.strptime(end_date, '%Y-%m-%dT%H:%M')
+                # ts_time을 DateTime 형식으로 변환
+                ts_time = datetime.strptime(ts_time, '%Y-%m-%dT%H:%M')
 
                 # 유저 인스턴스 가져오기
                 user_instance = get_object_or_404(AuthUser, pk=user_id)
@@ -267,10 +264,7 @@ class ScheduleView(LoginRequiredMixin, TemplateView):
                 # 스케줄 생성
                 schedule = Ts.objects.create(
                     tc_uid=user_instance,  # AuthUser 인스턴스를 할당
-                    ts_start=start_date,
-                    ts_end=end_date,
-                    ts_repeat_interver=repeat_interval,
-                    ts_repeat_interval_value=repeat_interval_value
+                    ts_time=ts_time
                 )
 
                 # TcList에서 연결된 테스트 케이스 찾기
