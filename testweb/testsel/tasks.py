@@ -22,15 +22,17 @@ scheduler = BackgroundScheduler()
 def check_and_run_scheduled_tests():
 
     now = timezone.now()
-    now_str = now.strftime('%Y-%m-%dT%H:%M')
-    now = datetime.strptime(now_str, '%Y-%m-%dT%H:%M')
     print("Now:", now)
     next_minute = now + timedelta(seconds=60)  # 현재 시간 기준으로 1분 후 계산
     print("Next minute:", next_minute)
+
     # ts_time이 현재 시간과 1분 후 사이에 있는 스케줄만 선택
     schedules = Ts.objects.filter(ts_time__gte=now, ts_time__lt=next_minute)
+    print("Schedules:", schedules)
+
     if not schedules.exists():
         print("No schedules found within the next 60 seconds.")
+        return  # 스케줄이 없으면 종료
     
     for schedule in schedules:
         print(f"Running scheduled test for schedule ID: {schedule.tc_pid} at {schedule.ts_time}")
@@ -38,25 +40,34 @@ def check_and_run_scheduled_tests():
         
         tc_pid = schedule.tc_pid.tc_pid
         user_id = schedule.tc_uid.id
-        print(user_id)
-        tc_instance = TcList.objects.filter(tc_pid=tc_pid)
-        print(tc_instance)
+        tc_instance = TcList.objects.filter(tc_pid=tc_pid).first()  # 첫 번째 인스턴스를 가져오기
+        print("tc_instance:", tc_instance)
+
+        if not tc_instance:
+            print(f"No TcList instance found for tc_pid: {tc_pid}")
+            continue  # 인스턴스가 없으면 다음 스케줄로 넘어가기
+
         test_cases = Tc.objects.filter(tc_pid=tc_pid)
-        print(test_cases)
+        print("test_cases:", test_cases)
+
+        if not test_cases.exists():
+            print(f"No test cases found for tc_pid: {tc_pid}")
+            continue  # 테스트 케이스가 없으면 다음 스케줄로 넘어가기
+
+        chrome_options = Options()
+        chrome_options.add_experimental_option("detach", True)
+        driver = webdriver.Chrome(options=chrome_options)
+
+        main_page_status = "성공"
+        all_success = True
+        failure_reasons = []
+
+        #첫 url 가져오기
+        main_url = test_cases.first().tc_url
+        driver.get(main_url)
 
         for tc in test_cases:
             try:
-                chrome_options = Options()
-                chrome_options.add_experimental_option("detach", True)
-                driver = webdriver.Chrome(options=chrome_options)
-                
-                main_url = tc.tc_url
-                driver.get(main_url)
-
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-                main_page_status = "성공"
-                failure_reason = ""
-
                 process_type = tc.tc_type
                 target = tc.tc_target
                 input_data = tc.tc_input
@@ -79,6 +90,9 @@ def check_and_run_scheduled_tests():
                     main_page_status = "실패"
                     failure_reason = processed_data
 
+                if processed_data != "성공":
+                    all_success = False
+                    failure_reasons.append(f"Type: {process_type}, Target: {target}, Result: {processed_data}")
             except TimeoutException:
                 main_page_status = "실패"
                 failure_reason = "페이지 로딩 시간 초과"
@@ -87,15 +101,23 @@ def check_and_run_scheduled_tests():
                 main_page_status = "실패"
                 failure_reason = str(e)
 
-            finally:
-                # 테스트 결과 저장
-                TcResult.objects.create(
-                    test_pid=tc_instance,
-                    test_uid=get_object_or_404(AuthUser, pk=user_id),
-                    test_result=main_page_status,
-                    failure_reason=failure_reason
-                )
-                driver.quit()
+        driver.quit()
+
+        # Determine final test result
+        main_page_status = "성공" if all_success else "실패"
+        failure_reason = "; ".join(failure_reasons) if not all_success else ""
+
+        # 테스트 결과 저장
+        try:
+            TcResult.objects.create(
+                test_pid=tc_instance,  # 필드와 실제 모델 참조 확인
+                test_uid=get_object_or_404(AuthUser, pk=user_id),
+                test_result=main_page_status,
+                failure_reason=failure_reason
+            )
+        except Exception as e:
+            print(f"Error saving test result: {e}")
+
 
 scheduler.add_job(check_and_run_scheduled_tests, 'interval', seconds=60)
 

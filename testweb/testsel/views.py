@@ -60,8 +60,11 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
                 chrome_options = Options()
                 chrome_options.add_experimental_option("detach", True)
+                chrome_options.add_argument("--headless")  # Headless 모드 추가
+                chrome_options.add_argument("--no-sandbox")  # 옵션 추가 (일부 환경에서는 필요)
+                chrome_options.add_argument("--disable-dev-shm-usage")  # 공유 메모리 사용 비활성화 (리소스 절약)
                 driver = webdriver.Chrome(options=chrome_options)
-
+                
                 main_url = data.get('main_url', '')
                 driver.get(main_url)
 
