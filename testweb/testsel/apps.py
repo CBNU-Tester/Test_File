@@ -9,5 +9,5 @@ class TestselConfig(AppConfig):
         from .tasks import start_scheduler
         if not hasattr(start_scheduler, "_initialized"):
             start_scheduler._initialized = True
-            print("고쳐진거지? 작동하나?")
+            print("스케줄러 시작")
             start_scheduler()

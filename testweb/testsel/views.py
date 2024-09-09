@@ -64,7 +64,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                 chrome_options.add_argument("--no-sandbox")  # 옵션 추가 (일부 환경에서는 필요)
                 chrome_options.add_argument("--disable-dev-shm-usage")  # 공유 메모리 사용 비활성화 (리소스 절약)
                 driver = webdriver.Chrome(options=chrome_options)
-                
+
                 main_url = data.get('main_url', '')
                 driver.get(main_url)
 
@@ -287,6 +287,43 @@ class ScheduleView(LoginRequiredMixin, TemplateView):
 
 class ScheduleListView(LoginRequiredMixin, TemplateView):
     template_name = 'scheduleList.html'
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.user.id
+        # 사용자와 연결된 스케줄 목록 가져오기
+
+        schedules = Ts.objects.filter(tc_uid=user_id).values_list()
+
+        schedule_data = []
+
+        for schedule in schedules:
+            test_name = TcList.objects.filter(tc_pid=schedule[1]).values_list('tc_name')
+            schedule_info = {
+                'ts_num': schedule[0],
+                'tc_pid': schedule[1],
+                'ts_time': schedule[3],
+                'test_name': test_name[0][0]
+            }
+            schedule_data.append(schedule_info)
+        
+        return self.render_to_response({'schedules': schedule_data})
+
+    def post(self, request):
+        user_id = request.user.id
+        action = request.POST.get('action', '')
+
+        if action == 'delete':
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                ts_num = request.POST.get('ts_num')
+                try:
+                    # 해당 스케줄 삭제
+                    schedule = Ts.objects.get(ts_num=ts_num, tc_uid=user_id)
+                    schedule.delete()
+                    return JsonResponse({'success': True})
+                except Ts.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': 'Schedule not found.'})
+        
+        return JsonResponse({'success': False, 'message': 'Invalid request.'})
 
 class ResultListView(LoginRequiredMixin, TemplateView):
     template_name = 'resultList.html'

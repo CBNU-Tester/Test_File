@@ -50,22 +50,31 @@
 {% endblock %}
 
 {% block topbar %}
-<h2>테스트 케이스 목록</h2>
+<h2>테스트 예약 목록</h2>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-3">
-    <ul class="test-case-list" id="test-case-list">
-        {% for test in tests %}
-            <li data-test-pid="{{ test.0 }}" data-test-description="{{ test.2 }}">
-                <span>{{ test.1 }}</span>
-                <div class="btn-container">
-                    <button class="btn btn-info btn-sm mr-2 view-description-btn">설명</button>
-                    <button class="btn btn-danger btn-sm delete-btn">삭제</button>
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <ul class="list-group" id="test-case-list">
+                {% for test in schedules %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center mb-3 shadow-sm" data-schedule-pid={{test.ts_num}}>
+                        <div>
+                            <h5 class="mb-1">테스트 이름: {{ test.test_name }}</h5>
+                            <p class="mb-1 text-muted">예약 시간: {{ test.ts_time }}</p>
+                        </div>
+                        <div class="btn-container">
+                            <button class="btn btn-danger btn-sm delete-btn" title="삭제">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
 
 <!-- 설명 modal -->
@@ -107,15 +116,15 @@
         $('.delete-btn').click(function(e) {
             e.stopPropagation();  // 클릭 이벤트 전파 중단
             var liElement = $(this).closest('li');
-            var testPID = liElement.data('test-pid');
+            var scheduleNum = liElement.data('schedule-pid');
 
             if (confirm('이 테스트 케이스를 삭제하시겠습니까?')) {
                 $.ajax({
-                    url: "{% url 'process_list_view' %}",  // 동일 뷰에서 처리
+                    url: "{% url 'schedule_list_view' %}",  // 동일 뷰에서 처리
                     type: 'POST',
                     data: {
                         'action' : 'delete',
-                        'tc_pid': testPID,
+                        'ts_num': scheduleNum,
                         'csrfmiddlewaretoken': '{{ csrf_token }}'
                     },
                     success: function(response) {
@@ -130,36 +139,6 @@
                     }
                 });
             }
-        });
-
-        // 설명 버튼 클릭 처리s
-        $('.view-description-btn').click(function(e) {
-            e.stopPropagation();  // 클릭 이벤트 전파 중단
-            var liElement = $(this).closest('li');
-            var testPID = liElement.data('test-pid');
-;
-            $.ajax({
-                url: "{% url 'process_list_view' %}",
-                type: 'POST',
-                data: {
-                    'action' : 'description',
-                    'tc_pid': testPID,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        console.log(response.description);
-                        $('#test-description-text').text(response.description);
-                        $('#viewTestDescriptionModal').modal('show');
-                    } else {
-                        alert('설명을 불러오는데 실패했습니다.');
-                    }
-                },
-
-            })
-            // 모달에 설명 설정
-            //$('#test-description-text').text(description);
-            //$('#viewTestDescriptionModal').modal('show');
         });
     });
 </script>
