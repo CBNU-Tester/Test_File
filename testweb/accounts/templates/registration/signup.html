@@ -2,15 +2,143 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            background: #e0f7fa; /* 하늘색 배경 */
+            flex-direction: column;
+            margin: 0;
+        }
+
+        .main {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px 30px;
+            width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #64b5f6; /* 파스텔 블루 톤 */
+        }
+
+        label {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            text-align: left;
+            color: #455a64; /* 부드러운 회색 */
+            font-weight: bold;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #b0bec5;
+            border-radius: 5px;
+            background-color: #e3f2fd; /* 부드러운 파란색 배경 */
+        }
+
+        button {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            background-color: #64b5f6; /* 파스텔 블루 버튼 */
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #42a5f5; /* 버튼 호버 시 좀 더 진한 파란색 */
+        }
+
+        p {
+            margin-top: 10px;
+            color: #455a64;
+        }
+
+        p a {
+            color: #64b5f6;
+            text-decoration: none;
+        }
+
+        p a:hover {
+            text-decoration: underline;
+        }
+        .tip-box {
+            background-color: #e3f2fd; /* 부드러운 파란색 배경 */
+            border-left: 5px solid #64b5f6;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #455a64;
+            border-radius: 5px;
+            display: none; /* 처음엔 숨김 */
+        }
+
+        .password-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 20px;
+            color: #64b5f6;
+        }
+        .tip-box ul {
+            padding-left: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Sign Up</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Sign Up</button>
-    </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    <div class="main">
+        <h1>Sign Up</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div>
+                <div class="tip-box" id="passwordTipBox">
+                    <strong>Password Requirements:</strong>
+                    <ul>
+                        <li>Your password can’t be too similar to your other personal information.</li>
+                        <li>Your password must contain at least 8 characters.</li>
+                        <li>Your password can’t be a commonly used password.</li>
+                        <li>Your password can’t be entirely numeric.</li>
+                    </ul>
+                </div>
+                <span class="password-icon" onclick="toggleTipBox()">ℹ️</span>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <!-- 팁 박스 -->
+
+        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    </div>
+
+    <script>
+        function toggleTipBox() {
+            var tipBox = document.getElementById("passwordTipBox");
+            if (tipBox.style.display === "none" || tipBox.style.display === "") {
+                tipBox.style.display = "block";
+            } else {
+                tipBox.style.display = "none";
+            }
+        }
+    </script>
 </body>
 </html>
