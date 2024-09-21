@@ -12,28 +12,24 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger(__name__)
-@method_decorator(csrf_exempt, name='dispatch')
-class RecordView(TemplateView):
-    template_name = 'record.html'
+# @method_decorator(csrf_exempt, name='dispatch')
+# class RecordView(TemplateView):
+#     template_name = 'record.html'
 
-    def post(self, request, *args, **kwargs):
-        # 원시 요청 본문을 디코딩하여 로그로 남김
-        raw_body = request.body.decode('utf-8')
-        logger.warning("Raw request body: %s", raw_body)
+#     def post(self, request, *args, **kwargs):
+#         # 원시 요청 본문을 디코딩하여 로그로 남김
+#         raw_body = request.body.decode('utf-8')
+#         logger.warning("Raw request body: %s", raw_body)
 
-        # JSON 데이터 로드
-        data = json.loads(raw_body)
-        xpath_value = data.get('xpath', 'Default Value')
-        # 추출한 값으로 컨텍스트 준비
-        context = self.get_context_data(**kwargs)
-        context['xpath_value'] = xpath_value
-        # logger.warning(xpath_value)
+#         # JSON 데이터 로드
+#         data = json.loads(raw_body)
+#         xpath_value = data.get('xpath', 'Default Value')
+#         # 추출한 값으로 컨텍스트 준비
+#         context = self.get_context_data(**kwargs)
+#         context['xpath_value'] = xpath_value
+#         # logger.warning(xpath_value)
 
-        return self.render_to_response(context)
-        # return render(request,self.template_name,context)
-
-        #return redirect(self.template_name,context)
-        #return JsonResponse({'xpath_value' : xpath_value})
+#         return self.render_to_response(context)
 
 @csrf_exempt
 @login_required
@@ -53,9 +49,13 @@ def save_record(request):
             
             print(user_id)
             user_instance = get_object_or_404(AuthUser, pk=user_id)
-            main_url="test URL"
-            test_name="record function test2"
-            test_description="record function test description2"
+            # main_url="test URL"
+            # test_name="record function test2"
+            # test_description="record function test description2"
+            main_url=data.get('url')
+            test_name=data.get('title')
+            datas=data.get('data')
+            test_description=" "
 
             # TcList에 저장
             test_list_instance = TcList(
@@ -69,7 +69,7 @@ def save_record(request):
             print("TcList 저장 성공: ", test_list_instance)
             save_data_list = []  # 저장 결과를 담을 리스트
 
-            for item in data:
+            for item in datas:
                 role=replace_role(item.get('role', ''))
                 try:
                     # Tc 모델에 각 xpath 값을 저장
