@@ -22,6 +22,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
+import plotly.express as px
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -372,6 +373,95 @@ class ResultListView(LoginRequiredMixin, TemplateView):
             return JsonResponse({'success' : True, 'description': des[0].failure_reason})
         
         return JsonResponse({'success': False, 'message': 'Invalid request.'})
-    
+import plotly.graph_objects as go
+import pandas as pd
+from django.views.generic import TemplateView
+from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import TcResult, Ts
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = self.request.user.id
+
+        # 이번 달의 시작일과 종료일 설정
+        now = timezone.now()
+        start_of_month = now.replace(day=1)
+        end_of_month = (start_of_month + pd.DateOffset(months=1)).replace(day=1) - pd.DateOffset(days=1)
+
+        # 전체 테스트 결과 데이터 가져오기 (현재 사용자 기준)
+        total_tests = TcResult.objects.filter(test_uid=user_id).count()
+        failed_tests = TcResult.objects.filter(test_uid=user_id, test_result='실패').count()
+        success_tests = total_tests - failed_tests
+        failure_percentage = (failed_tests / total_tests * 100) if total_tests > 0 else 0
+
+        # 이번 주에 실행된 테스트 수 (현재 사용자 기준)
+        start_of_week = now - timezone.timedelta(days=now.weekday())
+        tests_this_week = TcResult.objects.filter(test_uid=user_id, test_time__gte=start_of_week).count()
+
+        # 최근 실행된 테스트 항목 3개 (현재 사용자 기준)
+        recent_tests = TcResult.objects.filter(test_uid=user_id).order_by('-test_time')[:3]
+
+        # 현재 시간을 기준으로 가장 빨리 실행될 스케줄 3개 (현재 사용자 기준)
+        upcoming_schedules = Ts.objects.filter(tc_uid=user_id, ts_time__gte=now).order_by('ts_time')[:3]
+
+        # 이번 달 날짜별 테스트 횟수 조회
+        daily_test_data = (TcResult.objects.filter(test_uid=user_id, test_time__gte=start_of_month)
+                           .annotate(day=TruncDate('test_time'))
+                           .values('day')
+                           .annotate(test_count=Count('result_id'))
+                           .order_by('day'))
+
+        # 이번 달 1일부터 말일까지 날짜 생성
+        full_dates = pd.date_range(start=start_of_month, end=end_of_month)
+        date_map = {data['day']: data['test_count'] for data in daily_test_data}
+
+        # x축: 이번 달의 모든 날짜, y축: 테스트 횟수
+        dates = [day.date() for day in full_dates]
+        counts = [date_map.get(day.date(), 0) for day in full_dates]
+
+        # Line + Bar chart for this month's test records with x-axis as all days of the month
+        fig = go.Figure()
+
+        # Line graph
+        fig.add_trace(go.Scatter(x=dates, y=counts, mode='lines', name='테스트 횟수 (라인)', line=dict(color='royalblue')))
+
+        # Bar graph
+        fig.add_trace(go.Bar(x=dates, y=counts, name='테스트 횟수 (막대)', marker_color='lightblue'))
+
+        # Layout 업데이트 (x축 제목, y축 제목, 제목 위치)
+        fig.update_layout(
+            xaxis_title="날짜",
+            yaxis_title="횟수",
+            title="이번 달 테스트 기록",
+            title_x=0.5,
+            bargap=0.2,  # 막대 간격
+            template='plotly_white'
+        )
+
+        line_chart = fig.to_html(full_html=False)
+
+        # Pie chart for test results
+        labels = ['성공', '실패']
+        values = [success_tests, failed_tests]
+        pie_fig = px.pie(names=labels, values=values, title="테스트 결과 성공/실패 비율")
+        pie_fig.update_layout(title_x=0.5)  # 제목을 가운데 정렬
+        pie_chart = pie_fig.to_html(full_html=False)
+
+        context.update({
+            'failure_percentage': failure_percentage,
+            'tests_this_week': tests_this_week,
+            'recent_tests': recent_tests,
+            'upcoming_schedules': upcoming_schedules,
+            'line_chart': line_chart,  # 이번 달 테스트 기록 (Line + Bar)
+            'pie_chart': pie_chart,    # 성공/실패 비율 파이 차트
+        })
+        return context
+
 class RecordView(LoginRequiredMixin, TemplateView):
     template_name='base.html'

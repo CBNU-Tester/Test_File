@@ -225,6 +225,13 @@
         });
 
         $('#save-btn').click(function () {
+            url = window.location.href;
+            if (url.indexOf('?') > -1) {
+                tc_pid = url.split('?')[1];
+                tc_pid = tc_pid.split('=')[1];
+
+
+            }
             $('#saveTestModal').modal('show');
         });
 
