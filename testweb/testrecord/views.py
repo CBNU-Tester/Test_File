@@ -54,7 +54,7 @@ def save_record(request):
             # test_description="record function test description2"
             main_url=data.get('url')
             test_name=data.get('title')
-            datas=data.get('data')
+            datas=data.get('test_cases')
             test_description=" "
 
             # TcList에 저장
