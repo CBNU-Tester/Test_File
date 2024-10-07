@@ -53,11 +53,10 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="test-name" class="col-form-label">테스트 이름:</label>
-                            <input type="text" class="form-control" id="test-name">
-                        </div>
+                            <input type="text" class="form-control" id="test-name" value="{{ test_name }}">                        </div>
                         <div class="form-group">
                             <label for="test-description" class="col-form-label">설명:</label>
-                            <textarea class="form-control" id="test-description" rows="3"></textarea>
+                    <textarea class="form-control" id="test-description" rows="3">{{ test_description }}</textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -225,13 +224,6 @@
         });
 
         $('#save-btn').click(function () {
-            url = window.location.href;
-            if (url.indexOf('?') > -1) {
-                tc_pid = url.split('?')[1];
-                tc_pid = tc_pid.split('=')[1];
-
-
-            }
             $('#saveTestModal').modal('show');
         });
 
@@ -255,6 +247,7 @@
             });
 
             var formData = {
+                'tc_pid' : window.location.search.split('=')[1],
                 'main_url': $('#main-url').val(),
                 'dynamic_inputs': dynamicInputs,
                 'test_name': testName,

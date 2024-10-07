@@ -36,8 +36,10 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
         if tc_pid:
             filtered_tests = Tc.objects.filter(tc_pid=tc_pid).values()
-            return render(request, self.template_name, {'data': list(filtered_tests), 'tc_pid': tc_pid})
-        
+            return render(request, self.template_name, {'data': list(filtered_tests), 'tc_pid': tc_pid,
+                                                        'test_name' : TcList.objects.filter(tc_pid=tc_pid).values_list('tc_name')[0][0],
+                                                        'test_description' : TcList.objects.filter(tc_pid=tc_pid).values_list('tc_describe')[0][0]})
+                                                                        
         return render(request, self.template_name, {'data': [], 'tc_pid': None})
 
     def post(self, request, *args, **kwargs):
@@ -149,46 +151,81 @@ class ProcessView(LoginRequiredMixin, TemplateView):
             test_name = data.get('test_name', '')
             test_desciption = data.get('test_description', '')
             dynamic_inputs_list = data.get('dynamic_inputs', [])
-
-            # AuthUser 모델에서 사용자 객체를 가져옴
+            tc_pid = data.get('tc_pid', '')
             user_instance = get_object_or_404(AuthUser, pk=user_id)
 
-            # TcList에 저장
-            test_list_instance = TcList(
-                tc_uid=user_instance,  # ForeignKey이므로 AuthUser 객체로 설정
-                tc_name=test_name,
-                tc_describe = test_desciption
-            )
-            test_list_instance.save()  # 데이터 저장 후 tc_pid 생성
 
-            # 저장된 TcList 객체의 tc_pid 가져오기
-            tc_pid = test_list_instance  # tc_pid는 TcList 인스턴스를 참조해야 함
-
-            for item in dynamic_inputs_list:
-                try:
-                    # Tc에 저장
-                    test_save_instance = Tc(
-                        tc_type=item.get('type', ''),
-                        tc_url=main_url,
-                        tc_target=item.get('target', ''),
-                        tc_input=item.get('input', ''),
-                        tc_result=item.get('result', ''),
-                        tc_pid=tc_pid  # 저장된 TcList의 인스턴스 사용
-                    )
-
-                    # 데이터 저장
-                    test_save_instance.save()
-                    print("Tc 저장 성공: ", test_save_instance)  # 성공 메시지 출력
-
-                    save_data_list.append({
-                        'saved_data': f"Save successful for input: {item}",
-                    })
+            if tc_pid != '':
+                test_case = get_object_or_404(TcList, tc_pid=tc_pid, tc_uid=user_instance)
+                test_case.tc_name = test_name
+                test_case.tc_describe = test_desciption
+                test_case.save()
                 
-                except Exception as e:
-                    print(f"Error saving Tc instance: {e}")  # 오류 메시지 출력
-                    save_data_list.append({
-                        'error': f"Error saving for input: {item}, Error: {str(e)}",
-                    })
+                #이전 tc_pid에 연결된 Tc들 삭제
+                Tc.objects.filter(tc_pid=tc_pid).delete()
+
+                for item in dynamic_inputs_list:
+                    try:
+                        # Tc에 저장
+                        test_save_instance = Tc(
+                            tc_type=item.get('type', ''),
+                            tc_url=main_url,
+                            tc_target=item.get('target', ''),
+                            tc_input=item.get('input', ''),
+                            tc_result=item.get('result', ''),
+                            tc_pid=test_case  # 저장된 TcList의 인스턴스 사용
+                        )
+
+                        # 데이터 저장
+                        test_save_instance.save()
+                        print("Tc 저장 성공: ", test_save_instance)  # 성공 메시지 출력
+
+                        save_data_list.append({
+                            'saved_data': f"Save successful for input: {item}",
+                        })
+                    except Exception as e:
+                        print(f"Error saving Tc instance: {e}")  # 오류 메시지 출력
+                        save_data_list.append({
+                            'error': f"Error saving for input: {item}, Error: {str(e)}",
+                        })
+
+            else:
+                # TcList에 저장
+                test_list_instance = TcList(
+                    tc_uid=user_instance,  # ForeignKey이므로 AuthUser 객체로 설정
+                    tc_name=test_name,
+                    tc_describe = test_desciption
+                )
+                test_list_instance.save()  # 데이터 저장 후 tc_pid 생성
+
+                # 저장된 TcList 객체의 tc_pid 가져오기
+                tc_pid = test_list_instance  # tc_pid는 TcList 인스턴스를 참조해야 함
+
+                for item in dynamic_inputs_list:
+                    try:
+                        # Tc에 저장
+                        test_save_instance = Tc(
+                            tc_type=item.get('type', ''),
+                            tc_url=main_url,
+                            tc_target=item.get('target', ''),
+                            tc_input=item.get('input', ''),
+                            tc_result=item.get('result', ''),
+                            tc_pid=tc_pid  # 저장된 TcList의 인스턴스 사용
+                        )
+
+                        # 데이터 저장
+                        test_save_instance.save()
+                        print("Tc 저장 성공: ", test_save_instance)  # 성공 메시지 출력
+
+                        save_data_list.append({
+                            'saved_data': f"Save successful for input: {item}",
+                        })
+                    
+                    except Exception as e:
+                        print(f"Error saving Tc instance: {e}")  # 오류 메시지 출력
+                        save_data_list.append({
+                            'error': f"Error saving for input: {item}, Error: {str(e)}",
+                        })
 
             return JsonResponse({'save_data_list': save_data_list})
 
