@@ -328,9 +328,8 @@ class ScheduleListView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
-        # 사용자와 연결된 스케줄 목록 가져오기
-
-        schedules = Ts.objects.filter(tc_uid=user_id).values_list()
+        # Fetch schedules associated with the user
+        schedules = Ts.objects.filter(tc_uid=user_id).order_by('-ts_time').values_list()
 
         schedule_data = []
 
@@ -344,7 +343,7 @@ class ScheduleListView(LoginRequiredMixin, TemplateView):
             }
             schedule_data.append(schedule_info)
         
-        return self.render_to_response({'schedules': schedule_data})
+        return self.render_to_response({'schedules': schedule_data, 'test_data' : TcList.objects.filter(tc_uid=user_id).values_list('tc_pid','tc_name')})
 
     def post(self, request):
         user_id = request.user.id
@@ -354,22 +353,44 @@ class ScheduleListView(LoginRequiredMixin, TemplateView):
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 ts_num = request.POST.get('ts_num')
                 try:
-                    # 해당 스케줄 삭제
+                    # Delete the specified schedule
                     schedule = Ts.objects.get(ts_num=ts_num, tc_uid=user_id)
                     schedule.delete()
                     return JsonResponse({'success': True})
                 except Ts.DoesNotExist:
                     return JsonResponse({'success': False, 'message': 'Schedule not found.'})
         
-        return JsonResponse({'success': False, 'message': 'Invalid request.'})
+        elif action == 'update':
+            ts_num = request.POST.get('ts_num')
+            ts_time = request.POST.get('schedule_time')
+            tc_pid = request.POST.get('tc_pid')
+            tc_pid = get_object_or_404(TcList, tc_pid=tc_pid, tc_uid=user_id)
 
+            try:
+                # Update the specified schedule with the new time and test case ID
+                schedule = Ts.objects.get(ts_num=ts_num, tc_uid=user_id)
+                schedule.ts_time = ts_time
+                schedule.tc_pid = tc_pid
+                schedule.save()
+                return JsonResponse({'success': True})
+            except Ts.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Schedule not found.'})
+        
+        elif action == 'get_tests':
+            # Fetch available test cases for the select bar
+            tests = TcList.objects.filter(tc_uid=user_id).values('tc_pid', 'tc_name')
+            tests_list = list(tests)
+            return JsonResponse({'success': True, 'tests': tests_list})
+
+        return JsonResponse({'success': False, 'message': 'Invalid request.'})
+    
 class ResultListView(LoginRequiredMixin, TemplateView):
     template_name = 'resultList.html'
 
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
         # 사용자와 연결된 테스트 케이스 목록 가져오기
-        tests = TcResult.objects.filter(test_uid=user_id).values_list()
+        tests = TcResult.objects.filter(test_uid=user_id).order_by('-test_time').values_list()
         
         #맨 마지막에 TC_LIST에서 가져온테스트 이름 추가하기
         

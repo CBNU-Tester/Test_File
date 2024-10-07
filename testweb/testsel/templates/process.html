@@ -247,7 +247,7 @@
             });
 
             var formData = {
-                'tc_pid' : window.location.search.split('=')[1],
+                'tc_pid' : window.location.search.split('=')[1] || '',
                 'main_url': $('#main-url').val(),
                 'dynamic_inputs': dynamicInputs,
                 'test_name': testName,
