@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS (필요한 경우 추가) -->
+{% endblock %}
+
+{% block style %}
+<style>
+    h2 {
+        color: #343a40;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    #selected-tests-display {
+        font-weight: bold;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<h2>스케줄 생성</h2>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-flex justify-content-between p-3">
+    <form method="post" action="{% url 'schedule_view' %}" id="url-form">
+        {% csrf_token %}
+
+        <!-- 테스트 선택 버튼 -->
+        <button type="button" class="btn btn-primary mb-2" id="select-test-btn">테스트 선택</button>
+        <button type="button" class="btn btn-info mb-2" id="save-btn">저장</button> <!-- Save button -->
+
+        <!-- 시작일자와 종료일자 선택 필드 -->
+        <div class="form-group row mt-3">
+            <label for="schedule-time" class="col-md-4 col-form-label">스케줄 시간</label>
+            <div class="col-md-4">
+                <input type="datetime-local" class="form-control" id="schedule-time" name="schedule-time" required>
+            </div>
+        </div>
+
+        <div id="test-cases-container"></div> <!-- 테스트 케이스가 추가될 컨테이너 -->
+
+        <!-- 선택한 테스트 케이스를 화면에 표시하는 영역 -->
+        <div id="selected-tests-display">선택한 테스트 : 없음</div>
+
+        <!-- 테스트 불러오기 modal -->
+        <div class="modal fade" id="loadTestModal" tabindex="-1" role="dialog" aria-labelledby="loadTestModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loadTestModalLabel">테스트 케이스 선택</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ul id="loadedTestList" class="list-group">
+                            <!-- 불러온 테스트 데이터가 나열될 자리 -->
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                        <button type="button" class="btn btn-primary" id="load-selected-tests">선택된 테스트 추가</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="dynamic-inputs" name="dynamic_inputs">
+    </form>
+</div>
+
+<div id="result-container" class="mt-3">
+    <!-- 결과가 띄워지는 곳 -->
+</div>
+
+{% endblock %}
+{% block script %}
+<script>
+    $(document).ready(function () {
+        let inputCount = 0;
+        let selectedTests = []; // 선택된 테스트 케이스 저장 배열
+
+        // CSRF 토큰 설정
+        function getCSRFToken() {
+            return $('meta[name="csrf-token"]').attr('content');
+        }
+
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+            }
+        });
+
+        // 테스트 선택 버튼 클릭 시, 불러오기 모달 열기
+        $('#select-test-btn').click(function () {
+            $('#loadTestModal').modal('show');
+
+            // AJAX로 테스트 목록 불러오기
+            $.ajax({
+                url: '{% url "schedule_view" %}', // 테스트 목록을 불러오는 API
+                method: 'POST',
+                data : {
+                    'action' : 'get_tests',
+                },
+                success: function (response) {
+                    $('#loadedTestList').empty();
+                    $.each(response.tests, function(index, test) {
+                        $('#loadedTestList').append(
+                            `<li class="list-group-item">
+                                <input type="checkbox" class="mr-2" value="${test.tc_pid}" data-name="${test.tc_name}"> ${test.tc_name}
+                            </li>`
+                        );
+                    });
+                },
+                error: function (error) {
+                    console.error("Error fetching tests:", error);
+                    alert("테스트 목록을 불러오는 중 오류가 발생했습니다.");
+                }
+            });
+        });
+
+        // 선택된 테스트 불러오기 버튼 클릭 시, 테스트 케이스 추가
+        $('#load-selected-tests').click(function () {
+            selectedTests = []; // 선택된 테스트 목록 초기화
+            $('#test-cases-container').empty(); // 기존 선택된 테스트 케이스 제거
+
+            $('#loadTestModal input:checked').each(function () {
+                var testId = $(this).val();
+                var testName = $(this).data('name');
+
+                selectedTests.push(testName); // 선택된 테스트 케이스 배열에 추가
+
+                // 선택된 테스트 케이스를 페이지에 표시
+                $('#test-cases-container').append(`
+                    <div class="form-group row">
+                        <label class="col-md-2 col-form-label">테스트 케이스 ${++inputCount}</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="test-case-${testId}" value="${testName}" readonly>
+                        </div>
+                    </div>
+                `);
+            });
+
+            // 선택한 테스트를 화면에 표시
+            if (selectedTests.length > 0) {
+                $('#selected-tests-display').text('선택한 테스트 : ' + selectedTests.join(', '));
+            } else {
+                $('#selected-tests-display').text('선택한 테스트 : 없음');
+            }
+
+            $('#loadTestModal').modal('hide'); // 모달 닫기
+        });
+
+        // 스케줄 저장 버튼 클릭 시, 데이터 전송
+        $('#save-btn').click(function () {
+            var testPID = $('#loadedTestList input:checked').val();
+
+            var dynamicInputs = [];
+            $('#test-cases-container .form-group.row').each(function () {
+                dynamicInputs.push($(this).find('input').val());
+            });
+
+            var formData = {
+                'csrfmiddlewaretoken': getCSRFToken(),
+                'tc_pid' : testPID,
+                'dynamic_inputs': dynamicInputs,
+                'schedule_time': $('#schedule-time').val(), // 변경된 필드 이름
+            };
+
+            console.log(JSON.stringify(formData));
+
+            $.ajax({
+                url: '{% url "schedule_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("저장 데이터 전송 성공");
+                    $('#saveTestModal').modal('hide');
+                },
+                error: function (error) {
+                    console.error("저장 데이터 전송 실패", error);
+                    alert("데이터 저장 중 오류가 발생했습니다.");
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
