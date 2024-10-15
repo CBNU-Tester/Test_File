@@ -36,10 +36,7 @@
         <button type="button" class="btn btn-primary mb-2" id="add-url-btn">테스트 추가</button>
         <button type="button" class="btn btn-success mb-2" id="execute-btn">테스트 실행</button>
         <button type="button" class="btn btn-success mb-2" id="load-test-btn">테스트 불러오기</button>
-<<<<<<< HEAD
-=======
         <button type="button" class="btn btn-info mb-2" id="ai-btn">테스트 AI 생성</button> 
->>>>>>> 9a58441 (add : AI기능추가)
         <button type="button" class="btn btn-info mb-2" id="save-btn">저장</button> <!-- Save button -->
 
         <div id="test-cases-container"></div> <!-- 테스트 케이스가 추가될 컨테이너 -->
@@ -117,10 +114,8 @@
 
         // Function to add a new test case input row
         function addTestCase(afterElement, inputData = null) {
-<<<<<<< HEAD
-=======
+
             console.log('addTestCase');
->>>>>>> 9a58441 (add : AI기능추가)
             inputCount++;
 
             var newContainer = $('<div class="form-group row" id="newContainer-' + inputCount + '"></div>');
@@ -444,8 +439,6 @@
             }
             $('#result-container').append(resultContainer);
         }
-<<<<<<< HEAD
-=======
 
         $('#ai-btn').click(function () {
             var formData = {
@@ -469,7 +462,6 @@
                 }
             });
         });
->>>>>>> 9a58441 (add : AI기능추가)
     });
 </script>
 {% endblock %}

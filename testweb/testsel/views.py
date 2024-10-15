@@ -23,8 +23,6 @@ from django.utils.decorators import method_decorator
 from datetime import datetime
 from django.utils.dateparse import parse_datetime
 import plotly.express as px
-<<<<<<< HEAD
-=======
 import plotly.graph_objects as go
 import pandas as pd
 from django.views.generic import TemplateView
@@ -34,7 +32,6 @@ from .models import TcResult, Ts
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from .modelCode.main import create_main
->>>>>>> 9a58441 (add : AI기능추가)
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -250,8 +247,6 @@ class ProcessView(LoginRequiredMixin, TemplateView):
             filtered_tests = Tc.objects.filter(tc_pid=selectedTestPID).values()
             return JsonResponse({'data': list(filtered_tests)})
 
-<<<<<<< HEAD
-=======
         elif action_type == 'ai':
             url = data.get('url', '')
             data =create_main(url)
@@ -270,7 +265,6 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
             return JsonResponse({'data': list(tc_objects)})
 
->>>>>>> 9a58441 (add : AI기능추가)
         else:
             return JsonResponse({'error': 'Unsupported action type'}, status=400)
 
@@ -464,17 +458,6 @@ class ResultListView(LoginRequiredMixin, TemplateView):
             return JsonResponse({'success' : True, 'description': des[0].failure_reason})
         
         return JsonResponse({'success': False, 'message': 'Invalid request.'})
-<<<<<<< HEAD
-import plotly.graph_objects as go
-import pandas as pd
-from django.views.generic import TemplateView
-from django.utils import timezone
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import TcResult, Ts
-from django.db.models import Count
-from django.db.models.functions import TruncDate
-=======
->>>>>>> 9a58441 (add : AI기능추가)
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard.html'
