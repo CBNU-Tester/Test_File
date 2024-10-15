@@ -2,7 +2,6 @@ from durable.lang import *
 # xpath_extractor 모듈 import
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
-from process import initialize_file
 import json
 import csv
 import os

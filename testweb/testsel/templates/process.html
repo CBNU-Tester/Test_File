@@ -415,7 +415,7 @@
                 $(this).closest('.form-group.row').remove();
             });
 
-            $('#test-cases-container').on('click', '.add-test', function () {
+            $('#test-cases-container').off('click', '.add-test').on('click', '.add-test', function () {
                 var afterElement = $(this).closest('.form-group.row');
                 addTestCase(afterElement);
             });
