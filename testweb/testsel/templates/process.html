@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS (필요한 경우 추가) -->
+{% endblock %}
+{% block style %}
+<style>
+    h2 {
+        color: #343a40;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<h2>테스트 생성</h2>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-flex justify-content-between p-3">
+    <form method="post" action="{% url 'process_view' %}" id="url-form">
+        {% csrf_token %}
+
+        <!-- URL 입력 필드 -->
+        <div class="form-group row" id="main-url-container">
+            <label for="main-url" class="col-md-2 col-form-label">URL</label>
+            <div class="col-md-10">
+                <input type="text" class="form-control" id="main-url" name="main-url" required>
+            </div>
+        </div>
+
+        <!-- 초기 + 버튼 -->
+        <button type="button" class="btn btn-primary mb-2" id="add-url-btn">테스트 추가</button>
+        <button type="button" class="btn btn-success mb-2" id="execute-btn">테스트 실행</button>
+        <button type="button" class="btn btn-success mb-2" id="load-test-btn">테스트 불러오기</button>
+<<<<<<< HEAD
+=======
+        <button type="button" class="btn btn-info mb-2" id="ai-btn">테스트 AI 생성</button> 
+>>>>>>> 9a58441 (add : AI기능추가)
+        <button type="button" class="btn btn-info mb-2" id="save-btn">저장</button> <!-- Save button -->
+
+        <div id="test-cases-container"></div> <!-- 테스트 케이스가 추가될 컨테이너 -->
+
+        <!-- 저장 modal -->
+        <div class="modal fade" id="saveTestModal" tabindex="-1" role="dialog" aria-labelledby="saveTestModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="saveTestModalLabel">테스트 이름 저장</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="test-name" class="col-form-label">테스트 이름:</label>
+                            <input type="text" class="form-control" id="test-name" value="{{ test_name }}">                        </div>
+                        <div class="form-group">
+                            <label for="test-description" class="col-form-label">설명:</label>
+                    <textarea class="form-control" id="test-description" rows="3">{{ test_description }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                        <button type="button" class="btn btn-primary" id="save-test-name-btn">저장</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 불러오기 modal -->
+        <div class="modal fade" id="loadTestModal" tabindex="-1" role="dialog" aria-labelledby="loadTestModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loadTestModalLabel">테스트 케이스 불러오기</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ul id="loadedTestList" class="list-group">
+                            <!-- 불러온 테스트 데이터가 나열될 자리 -->
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                        <button type="button" class="btn btn-primary" id="load-selected-tests">선택된 테스트 불러오기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="dynamic-inputs" name="dynamic_inputs">
+    </form>
+</div>
+
+<div id="result-container" class="mt-3">
+    <!-- 결과가 띄워지는 곳 -->
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function () {
+        var inputCount = 0;
+
+        // Load test data from the context
+        var initialData = {{ data|safe }};
+        if (initialData) {
+            loadTestData(initialData);
+        }
+
+        // Function to add a new test case input row
+        function addTestCase(afterElement, inputData = null) {
+<<<<<<< HEAD
+=======
+            console.log('addTestCase');
+>>>>>>> 9a58441 (add : AI기능추가)
+            inputCount++;
+
+            var newContainer = $('<div class="form-group row" id="newContainer-' + inputCount + '"></div>');
+
+            var newDropdown = $('<div class="col-md-2">' +
+                '<label for="typeSelect-' + inputCount + '">타입 선택</label>' +
+                '<select class="form-control dynamic-typeSelect" id="typeSelect-' + inputCount + '">' +
+                '<option value="process_click_xpath">1. 클릭</option>' +
+                '<option value="process_click_xpath_otherurl">2. 클릭 시 페이지 전환</option>' +
+                '<option value="process_click_xpath_div">3. 클릭 시 요소 탐지</option>' +
+                '<option value="process_click_xpath_iframe">4. 클릭 시 iframe 내부 탐지</option>' +
+                '<option value="process_send_xpath">5. 값 입력</option>' +
+                '</select></div>');
+
+            var newTarget = $('<div class="col-md-2">' +
+                '<label for="target-' + inputCount + '">Target(Xpath)</label>' +
+                '<input type="text" class="form-control dynamic-input" name="target-' + inputCount + '" id="target-' + inputCount + '"></div>');
+
+            var newInput = $('<div class="col-md-2">' +
+                '<label for="input-' + inputCount + '">Input</label>' +
+                '<input type="text" class="form-control dynamic-input" name="input-' + inputCount + '" id="input-' + inputCount + '"></div>');
+
+            var newResult = $('<div class="col-md-2">' +
+                '<label for="result-' + inputCount + '">Result</label>' +
+                '<input type="text" class="form-control dynamic-input" name="result-' + inputCount + '" id="result-' + inputCount + '"></div>');
+
+            var deleteButton = $('<div class="col-md-1">' +
+                '<label>&nbsp;</label>' +
+                '<button type="button" class="btn btn-danger btn-block remove-test">-</button>' +
+                '</div>');
+
+            var addButton = $('<div class="col-md-1">' +
+                '<label>&nbsp;</label>' +
+                '<button type="button" class="btn btn-primary btn-block add-test">+</button>' +
+                '</div>');
+
+            newContainer.append(newDropdown);
+            newContainer.append(newTarget);
+            newContainer.append(newInput);
+            newContainer.append(newResult);
+            newContainer.append(deleteButton);
+            newContainer.append(addButton);
+
+            if (inputData) {
+                newDropdown.find('select').val(inputData.type);
+                newTarget.find('input').val(inputData.target);
+                newInput.find('input').val(inputData.input);
+                newResult.find('input').val(inputData.result);
+            }
+
+            if (afterElement) {
+                newContainer.insertAfter(afterElement);
+            } else {
+                $('#test-cases-container').append(newContainer);
+            }
+
+            deleteButton.click(function () {
+                newContainer.remove();
+            });
+
+            addButton.click(function () {
+                addTestCase(newContainer);
+            });
+        }
+
+        $('#add-url-btn').click(function () {
+            addTestCase(null);
+        });
+
+        let csrftoken = $('[name=csrfmiddlewaretoken]').val();
+
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": csrftoken }
+        });
+
+        $('#execute-btn').click(function () {
+            var ExE_dynamicInputs = [];
+            $('#test-cases-container .form-group.row').each(function () {
+                ExE_dynamicInputs.push({
+                    'type': $(this).find('.dynamic-typeSelect').val(),
+                    'target': $(this).find('.dynamic-input[name^="target"]').val(),
+                    'input': $(this).find('.dynamic-input[name^="input"]').val(),
+                    'result': $(this).find('.dynamic-input[name^="result"]').val()
+                });
+            });
+
+            var formData = {
+                'main_url': $('#main-url').val(),
+                'tc_pid' : window.location.search.split('=')[1],
+                'dynamic_inputs': ExE_dynamicInputs,
+                'action_type': 'test',
+            };
+
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("실험 데이터 전송 성공")
+                    console.log(response.processed_data_list)
+                    loadResult(response.processed_data_list)
+                },
+                error: function (error) {
+                    console.log("실험 데이터 전송 실패")
+                    console.error(error);
+                }
+            });
+        });
+
+        $('#save-btn').click(function () {
+            $('#saveTestModal').modal('show');
+        });
+
+        $('#save-test-name-btn').click(function () {
+            var testName = $('#test-name').val();
+            var testDescription = $('#test-description').val();
+
+            if (testName.trim() === '') {
+                alert('테스트 이름을 입력해주세요.');
+                return;
+            }
+
+            var dynamicInputs = [];
+            $('#test-cases-container .form-group.row').each(function () {
+                dynamicInputs.push({
+                    'type': $(this).find('.dynamic-typeSelect').val(),
+                    'target': $(this).find('.dynamic-input[name^="target"]').val(),
+                    'input': $(this).find('.dynamic-input[name^="input"]').val(),
+                    'result': $(this).find('.dynamic-input[name^="result"]').val()
+                });
+            });
+
+            var formData = {
+                'tc_pid' : window.location.search.split('=')[1] || '',
+                'main_url': $('#main-url').val(),
+                'dynamic_inputs': dynamicInputs,
+                'test_name': testName,
+                'test_description': testDescription,
+                'action_type': 'save',
+            };
+
+            console.log(JSON.stringify(formData));
+
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("저장 데이터 전송 성공");
+                    $('#saveTestModal').modal('hide');
+                },
+                error: function (error) {
+                    console.log("저장 데이터 전송 실패");
+                }
+            });
+        });
+
+        $('#load-test-btn').click(function () {
+            var formData = {
+                'action_type': 'load',
+            };
+
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("테스트 데이터 불러오기 성공")
+                    console.log(response.testInfo)
+
+                    displayLoadedTests(response.testInfo);
+                },
+                error: function (error) {
+                    console.log("테스트 데이터 불러오기 실패")
+                    console.error(error);
+                }
+            });
+        });
+
+        function displayLoadedTests(tests) {
+            $('#loadedTestList').empty();
+
+            for (var i = 0; i < tests.length; i++) {
+                var test = tests[i];
+                var listItem = $('<li class="list-group-item">' +
+                    '<input type="checkbox" class="test-checkbox" data-index="' + test[0] +'">' +
+                    '<span>' + test[1] + '</span></li>');
+                
+                listItem.find('.test-checkbox').change(function () {
+                    $(this).parent().toggleClass('active', this.checked);
+                });
+
+                $('#loadedTestList').append(listItem);
+            }
+
+            $('#load-selected-tests').click(function () {
+                var selectedTest;
+                $('#loadedTestList li.active').each(function () {
+                    var index = $(this).find('.test-checkbox').data('index');
+                    selectedTest = index;
+                });
+
+                var data = {
+                    'action_type' : 'db_load',
+                    'selectedTest' : selectedTest,
+                };
+
+                console.log(data);
+                $.ajax({
+                    url: '{% url "process_view" %}',
+                    type: 'POST',
+                    data: JSON.stringify(data),
+                    contentType: 'application/json',
+                    success: function (response){
+                        console.log(response.data);
+                        loadTestData(response.data);
+                        // Update URL with the test name
+                        if (selectedTest > 0) {
+                            var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?tc_pid=' + encodeURIComponent(selectedTest);
+                            window.history.pushState({ path: newUrl }, '', newUrl);
+                        }
+                    },
+                    error: function(error){
+                        console.error(error);
+                    }
+                });
+
+                $('#loadTestModal').modal('hide');
+            });
+
+            $('#loadTestModal').modal('show');
+        }
+
+        function loadTestData(data) {
+            $('#test-cases-container').empty();
+
+            if (data.length > 0) {
+                $('#main-url').val(data[0].tc_url);
+            }
+
+            for (var i = 0; i < data.length; i++) {
+                var loadedData = data[i];
+
+                var newContainer = $('<div class="form-group row" id="newContainer-' + i + '"></div>');
+
+                var newDropdown = $('<div class="col-md-2">' +
+                    '<label for="typeSelect-' + i + '">타입 선택</label>' +
+                    '<select class="form-control dynamic-typeSelect" id="typeSelect-' + i + '"></select></div>');
+
+                var newTarget = $('<div class="col-md-2">' +
+                    '<label for="target-' + i + '">Target(Xpath)</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="target-' + i + '" id="target-' + i + '"></div>');
+
+                var newInput = $('<div class="col-md-2">' +
+                    '<label for="input-' + i + '">Input</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="input-' + i + '" id="input-' + i + '"></div>');
+
+                var newResult = $('<div class="col-md-2">' +
+                    '<label for="result-' + i + '">Result</label>' +
+                    '<input type="text" class="form-control dynamic-input" name="result-' + i + '" id="result-' + i + '"></div>');
+
+                var deleteButton = $('<div class="col-md-1">' +
+                    '<label>&nbsp;</label>' +
+                    '<button type="button" class="btn btn-danger btn-block remove-test">-</button>' +
+                    '</div>');
+
+                var addButton = $('<div class="col-md-1">' +
+                    '<label>&nbsp;</label>' +
+                    '<button type="button" class="btn btn-primary btn-block add-test">+</button>' +
+                    '</div>');
+
+                newDropdown.find('select').append('<option value="process_click_xpath">1. 클릭</option>');
+                newDropdown.find('select').append('<option value="process_click_xpath_otherurl">2. 클릭 시 페이지 전환</option>');
+                newDropdown.find('select').append('<option value="process_click_xpath_div">3. 클릭 시 요소 탐지</option>');
+                newDropdown.find('select').append('<option value="process_click_xpath_iframe">4. 클릭 시 iframe 내부 탐지</option>');
+                newDropdown.find('select').append('<option value="process_send_xpath">5. 값 입력</option>');
+
+                newDropdown.find('select').val(loadedData.tc_type);
+                newTarget.find('input').val(loadedData.tc_target);
+                newInput.find('input').val(loadedData.tc_input);
+                newResult.find('input').val(loadedData.tc_result);
+
+                newContainer.append(newDropdown);
+                newContainer.append(newTarget);
+                newContainer.append(newInput);
+                newContainer.append(newResult);
+                newContainer.append(deleteButton);
+                newContainer.append(addButton);
+
+                $('#test-cases-container').append(newContainer);
+            }
+
+            $('#test-cases-container').on('click', '.remove-test', function () {
+                $(this).closest('.form-group.row').remove();
+            });
+
+            $('#test-cases-container').on('click', '.add-test', function () {
+                var afterElement = $(this).closest('.form-group.row');
+                addTestCase(afterElement);
+            });
+        }
+
+        function loadResult(data) {
+            var processedDataList = data;
+
+            $('#result-container').empty();
+
+            var resultContainer = $('<div class="mt-3">결과</div>');
+
+            for (var i = 0; i < processedDataList.length; i++) {
+                var processedData = processedDataList[i];
+
+                var resultItem = $('<div>' +
+                    i + '번째 테스트' + ', 테스트 결과 : ' + processedData.processed_data +
+                    '</div>');
+
+                resultContainer.append(resultItem);
+            }
+            $('#result-container').append(resultContainer);
+        }
+<<<<<<< HEAD
+=======
+
+        $('#ai-btn').click(function () {
+            var formData = {
+                'action_type': 'ai',
+                'url' : $('#main-url').val(),
+            };
+
+            $.ajax({
+                url: '{% url "process_view" %}',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function (response) {
+                    console.log("AI 데이터 전송 성공")
+                    console.log(response.data)
+                    loadTestData(response.data);
+                },
+                error: function (error) {
+                    console.log("AI 데이터 전송 실패")
+                    console.error(error);
+                }
+            });
+        });
+>>>>>>> 9a58441 (add : AI기능추가)
+    });
+</script>
+{% endblock %}
