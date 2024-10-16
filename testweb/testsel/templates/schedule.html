@@ -35,13 +35,9 @@
         <button type="button" class="btn btn-info mb-2" id="save-btn">저장</button> <!-- Save button -->
 
         <!-- 시작일자와 종료일자 선택 필드 -->
-        <div class="form-group row mt-3">
-<<<<<<< HEAD
-            <label for="schedule-time" class="col-md-2 col-form-label">스케줄 시간</label>
-=======
-            <label for="schedule-time" class="col-md-4 col-form-label">스케줄 시간</label>
->>>>>>> 9a58441 (add : AI기능추가)
-            <div class="col-md-4">
+        <div class="form-group row mt-12">
+            <label for="schedule-time" class="col-md-3 col-form-label">시간</label>
+            <div class="col-md-9">
                 <input type="datetime-local" class="form-control" id="schedule-time" name="schedule-time" required>
             </div>
         </div>
@@ -142,7 +138,7 @@
                 // 선택된 테스트 케이스를 페이지에 표시
                 $('#test-cases-container').append(`
                     <div class="form-group row">
-                        <label class="col-md-2 col-form-label">테스트 케이스 ${++inputCount}</label>
+                        <label class="col-md-6 col-form-label">테스트 케이스 ${++inputCount}</label>
                         <div class="col-md-10">
                             <input type="text" class="form-control" name="test-case-${testId}" value="${testName}" readonly>
                         </div>
