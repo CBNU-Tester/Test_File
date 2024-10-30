@@ -5,10 +5,24 @@ from selenium.common.exceptions import StaleElementReferenceException, NoSuchEle
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from bs4 import BeautifulSoup
+from selenium.webdriver.chrome.options import Options
+from dotenv import load_dotenv
+import os
+
+load_dotenv(dotenv_path=".config/.env", verbose=True)
 
 def extract_data(url):
     # Selenium WebDriver 설정
-    driver = webdriver.Chrome()
+    # Chrome 옵션 설정
+    options = Options()
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--headless")  # GUI 없이 실행
+
+    driver = webdriver.Remote(
+        command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
+        options=options
+    )
     driver.get(url)
 
     # XPath 추출을 위한 자바스크립트 함수

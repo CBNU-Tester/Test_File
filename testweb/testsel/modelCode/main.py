@@ -27,7 +27,7 @@ def create_main(url):
     type_label_map = {0: 'process_click_xpath', 1: 'process_click_xpath_otherurl', 2: 'process_send_xpath'}
     # 중요도 레이블 매핑
     important_label_map = {0: 0, 1: 1}
-    print("모델불러오기 성공")
+    
     # 모델 예측 및 결과 병합
     with torch.no_grad():
         for i, input_data in enumerate(inputs):
