@@ -29,6 +29,28 @@
     {% endblock %}
 </head>
 
+<div id="loading_now" style="position: fixed; top: 50%; left: 50%; z-index: 1000; display: none;">
+    <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
 <body id="page-top">
 
     <!-- Page Wrapper -->
@@ -134,6 +156,16 @@
         <a class="scroll-to-top rounded" href="#page-top">
             <i class="fas fa-angle-up"></i>
         </a>
+        <script>
+
+            function showLoading() {
+                document.getElementById('loading_now').style.display = 'block';
+            }
+
+            function hideLoading() {
+                document.getElementById('loading_now').style.display = 'none';
+            }
+        </script>
 
         {% block script %}
         {% endblock %}

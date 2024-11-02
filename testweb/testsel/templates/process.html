@@ -214,6 +214,9 @@
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
+                beforeSend: function () {
+                    showLoading();
+                },
                 success: function (response) {
                     console.log("실험 데이터 전송 성공")
                     console.log(response.processed_data_list)
@@ -222,6 +225,9 @@
                 error: function (error) {
                     console.log("실험 데이터 전송 실패")
                     console.error(error);
+                },
+                complete: function () {
+                    hideLoading();
                 }
             });
         });
@@ -265,12 +271,18 @@
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
+                beforeSend: function () {
+                    showLoading();
+                },
                 success: function (response) {
                     console.log("저장 데이터 전송 성공");
                     $('#saveTestModal').modal('hide');
                 },
                 error: function (error) {
                     console.log("저장 데이터 전송 실패");
+                },
+                complete: function () {
+                    hideLoading();
                 }
             });
         });
@@ -285,6 +297,9 @@
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
+                beforeSend: function () {
+                    showLoading();
+                },
                 success: function (response) {
                     console.log("테스트 데이터 불러오기 성공")
                     console.log(response.testInfo)
@@ -294,6 +309,9 @@
                 error: function (error) {
                     console.log("테스트 데이터 불러오기 실패")
                     console.error(error);
+                },
+                complete: function () {
+                    hideLoading();
                 }
             });
         });
@@ -332,6 +350,9 @@
                     type: 'POST',
                     data: JSON.stringify(data),
                     contentType: 'application/json',
+                    beforeSend: function () {
+                        showLoading();
+                    },
                     success: function (response){
                         console.log(response.data);
                         loadTestData(response.data);
@@ -343,6 +364,9 @@
                     },
                     error: function(error){
                         console.error(error);
+                    },
+                    complete: function () {
+                        hideLoading();
                     }
                 });
 
@@ -451,6 +475,9 @@
                 type: 'POST',
                 data: JSON.stringify(formData),
                 contentType: 'application/json',
+                beforeSend: function () {
+                    showLoading();
+                },
                 success: function (response) {
                     console.log("AI 데이터 전송 성공")
                     console.log(response.data)
@@ -459,6 +486,9 @@
                 error: function (error) {
                     console.log("AI 데이터 전송 실패")
                     console.error(error);
+                },
+                complete: function () {
+                    hideLoading();
                 }
             });
         });
