@@ -194,9 +194,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#로그인 경로
-
-LOGIN_REDIRECT_URL = '/testsel/'
-LOGOUT_REDIRECT_URL = '/'
-
 SCHEDULER_STARTED = False  # 기본값은 False로 설정
+
+# 기본 로그인 및 로그아웃 URL 설정
+LOGIN_URL = 'login'                  # 로그인 URL
+LOGOUT_URL = 'logout'                # 로그아웃 URL
+LOGIN_REDIRECT_URL = 'dashboard_view'  # 로그인 후 리다이렉트할 URL
+LOGOUT_REDIRECT_URL = 'login'         # 로그아웃 후 리다이렉트할 URL
