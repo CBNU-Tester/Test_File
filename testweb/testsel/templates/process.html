@@ -95,6 +95,36 @@
     </form>
 </div>
 
+<!-- AI Modal -->
+<div class="modal fade" id="aiModal" tabindex="-1" role="dialog" aria-labelledby="aiModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="aiModalLabel">AI 데이터 생성</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="aiForm">
+            <div class="form-group">
+              <label for="modal-url">URL</label>
+              <input type="text" class="form-control" id="modal-url" placeholder="url 입력">
+            </div>
+            <div class="form-group">
+              <label for="modal-search-term">class or id</label>
+              <input type="text" class="form-control" id="modal-search-term" placeholder="class or id">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+          <button type="button" class="btn btn-primary" id="ai-generate-btn">생성</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 <div id="result-container" class="mt-3">
     <!-- 결과가 띄워지는 곳 -->
 </div>
@@ -463,11 +493,15 @@
             }
             $('#result-container').append(resultContainer);
         }
-
         $('#ai-btn').click(function () {
+            $('#aiModal').modal('show');
+        });
+
+        $('#ai-generate-btn').click(function () {
             var formData = {
                 'action_type': 'ai',
-                'url' : $('#main-url').val(),
+                'url': $('#modal-url').val(),
+                'search_term': $('#modal-search-term').val(),
             };
 
             $.ajax({
@@ -479,12 +513,13 @@
                     showLoading();
                 },
                 success: function (response) {
-                    console.log("AI 데이터 전송 성공")
-                    console.log(response.data)
+                    console.log("AI 데이터 생성 성공");
+                    console.log(response.data);
                     loadTestData(response.data);
+                    $('#aiModal').modal('hide');  // 요청 완료 후 모달 닫기
                 },
                 error: function (error) {
-                    console.log("AI 데이터 전송 실패")
+                    console.log("AI 데이터 생성 실패");
                     console.error(error);
                 },
                 complete: function () {
@@ -492,6 +527,8 @@
                 }
             });
         });
+
+
     });
 </script>
 {% endblock %}

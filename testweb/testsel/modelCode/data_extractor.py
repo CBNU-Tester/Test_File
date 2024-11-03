@@ -1,185 +1,154 @@
 # data_extractor.py
 
-import json
-from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
-from selenium.webdriver.common.by import By
+import time
+import re
 from selenium import webdriver
-from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from dotenv import load_dotenv
-import os
+from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 
-load_dotenv(dotenv_path=".config/.env", verbose=True)
 
-def extract_data(url):
-    # Selenium WebDriver 설정
-    # Chrome 옵션 설정
-    options = Options()
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--headless")  # GUI 없이 실행
-
-    driver = webdriver.Remote(
-        command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
-        options=options
-    )
-    driver.get(url)
-
-    # XPath 추출을 위한 자바스크립트 함수
+def get_xpath(element):
     script = """
-        var getElementXPath = function(element) {
-            if (!element || !element.tagName) return '';
-            if (element.id !== '') {
-                return "//" + element.tagName.toLowerCase() + "[@id='" + element.id + "']";
-            }
-            if (element.className !== '') {
-                var classes = element.className.trim().split(/\\s+/).join('.');
-                return "//" + element.tagName.toLowerCase() + "[contains(@class, '" + classes + "')]";
-            }
-            var attributes = element.attributes;
-            var attributeXPath = '';
-            for (var i = 0; i < attributes.length; i++) {
-                var attr = attributes[i];
-                if (attr.name !== 'id' && attr.name !== 'class') {
-                    attributeXPath += "[@"+ attr.name + "='" + attr.value + "']";
-                }
-            }
-            if (attributeXPath !== '') {
-                return "//" + element.tagName.toLowerCase() + attributeXPath;
-            }
-            var ix= 0, siblings= element.parentNode.childNodes;
-            for (var i= 0; i< siblings.length; i++) {
-                var sibling= siblings[i];
-                if (sibling === element) {
-                    return getElementXPath(element.parentNode)+ '/' + element.tagName.toLowerCase() + '[' + (ix+1) + ']';
-                }
-                if (sibling.nodeType=== 1 && sibling.tagName=== element.tagName) {
-                    ix++;
-                }
-            }
-        };
-        return getElementXPath(arguments[0]);
+    function getElementXPath(elt) {
+        var path = '';
+        for (; elt && elt.nodeType == 1; elt = elt.parentNode) {
+            idx = getElementIdx(elt);
+            xname = elt.tagName.toLowerCase();
+            if (idx > 1) xname += '[' + idx + ']';
+            path = '/' + xname + path;
+        }
+        return path;
+    }
+    function getElementIdx(elt) {
+        var count = 1;
+        for (var sib = elt.previousSibling; sib; sib = sib.previousSibling) {
+            if(sib.nodeType == 1 && sib.tagName == elt.tagName) count++;
+        }
+        return count;
+    }
+    return getElementXPath(arguments[0]);
     """
+    try:
+        return element._parent.execute_script(script, element)
+    except StaleElementReferenceException:
+        return None
 
-    # 데이터를 저장할 리스트 초기화
-    all_data = []
 
-    # 처리할 태그 목록
-    tags_to_process = ['a', 'button', 'div', 'input', 'select', 'textarea']
+def extract_data(urls, search_term):
+    # Chrome 옵션 설정
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # 화면 표시 없이 실행
+    driver = webdriver.Chrome(options=chrome_options)
 
-    for tag_name in tags_to_process:
-        elements = driver.find_elements(By.TAG_NAME, tag_name)
-        for index, element in enumerate(elements, start=1):
-            try:
-                element_html = element.get_attribute('outerHTML')
-                soup = BeautifulSoup(element_html, 'html.parser')
-                element_tag = soup.find(tag_name)
+    # 이미 처리된 요소의 XPath를 추적하기 위한 세트
+    processed_xpaths = set()
+    data_rows = []
 
-                # 공통 속성 추출
-                element_id = element_tag.get('id')
-                element_class = element_tag.get('class')
-                class_value = element_class[0] if element_class else None
-                element_text = element_tag.text.strip()
+    for url in urls:
+        try:
+            driver.get(url)
+            time.sleep(2)  # 페이지 로딩 대기
 
-                # XPath 생성
-                if element_id:
-                    xpath = f"//{tag_name}[@id='{element_id}']"
-                else:
+            # 검색할 id, class, role 속성에 search_term이 포함된 요소를 XPath로 찾기
+            xpath_expression = f"//*[contains(@id, '{search_term}') or contains(@class, '{search_term}') or contains(@role, '{search_term}')]"
+            elements = driver.find_elements(By.XPATH, xpath_expression)
+
+            # 중복된 요소를 제거하기 위해 XPath를 사용
+            unique_elements = []
+            unique_xpaths = set()
+            for elem in elements:
+                try:
+                    xpath = get_xpath(elem)
+                    if xpath and xpath not in unique_xpaths:
+                        unique_elements.append(elem)
+                        unique_xpaths.add(xpath)
+                except StaleElementReferenceException:
+                    continue
+
+            # 각 요소와 모든 하위 요소를 가져옴
+            for element in unique_elements:
+                elements_queue = [(element, None)]  # (element, parent_xpath)
+                while elements_queue:
                     try:
-                        xpath = driver.execute_script(script, element)
+                        current_element, parent_xpath = elements_queue.pop(0)
+                        current_xpath = get_xpath(current_element)
+                        if not current_xpath or current_xpath in processed_xpaths:
+                            continue
+                        processed_xpaths.add(current_xpath)
+
+                        # 현재 요소의 태그만 가져오기
+                        outer_html = current_element.get_attribute('outerHTML')
+                        # 정규식을 사용하여 시작 태그만 추출
+                        match = re.match(r'<[^>]+?>', outer_html)
+                        if match:
+                            element_only_html = match.group()
+                        else:
+                            element_only_html = f'<{current_element.tag_name}>'
+
+                        # 현재 요소 처리
+                        tag_name = current_element.tag_name
+                        input_field = None
+                        result_field = None
+                        important_field = None
+                        type_field = None
+
+                        # input 태그 데이터 처리
+                        if tag_name == 'input':
+                            name_attr = current_element.get_attribute('name')
+                            id_attr = current_element.get_attribute('id')
+                            if name_attr and search_term in name_attr.lower():
+                                input_field = 'input_text'
+                            elif id_attr and search_term in id_attr.lower():
+                                input_field = 'input_text'
+
+                        # a 태그나 버튼의 Result 처리
+                        if tag_name == 'a':
+                            href = current_element.get_attribute('href')
+                            if href:
+                                result_field = href
+                        elif tag_name == 'button':
+                            onclick = current_element.get_attribute('onclick')
+                            if onclick:
+                                result_field = onclick
+                        else:
+                            onclick = current_element.get_attribute('onclick')
+                            if onclick:
+                                result_field = onclick
+
+                        row = {
+                            'Tag': tag_name,
+                            'HTML': element_only_html,
+                            'XPath': current_xpath,
+                            'ParentXPath': parent_xpath if parent_xpath else '',
+                            'Input': input_field,
+                            'Result': result_field,
+                            'Important': important_field,
+                            'Type': type_field
+                        }
+
+                        # 빈 필드를 None으로 설정
+                        for key in row:
+                            if not row[key]:
+                                row[key] = None
+
+                        data_rows.append(row)
+
+                        # 자식 요소들을 큐에 추가
+                        child_elements = current_element.find_elements(By.XPATH, './*')
+                        for child in child_elements:
+                            elements_queue.append((child, current_xpath))
+
                     except StaleElementReferenceException:
-                        continue  # 오류 발생 시 다음 요소로 넘어감
+                        continue
+                    except Exception as e:
+                        print(f"Error processing element: {e}")
+                        continue
+        except Exception as e:
+            print(f"Error accessing {url}: {e}")
+            continue
 
-                # 태그별로 추가 속성 추출
-                data = {
-                    'tag': tag_name,
-                    'index': index,
-                    'id': element_id,
-                    'class_': class_value,
-                    'text': element_text,
-                    'xPath': xpath,
-                    'url': url
-                }
-
-                if tag_name == 'a':
-                    data.update({
-                        'href': element_tag.get('href'),
-                        'target': element_tag.get('target', '_self'),
-                        'rel': element_tag.get('rel'),
-                        'title': element_tag.get('title'),
-                        'aria-label': element_tag.get('aria-label'),
-                        'download': element_tag.get('download'),
-                    })
-
-                elif tag_name == 'button':
-                    data.update({
-                        'type': element_tag.get('type'),
-                        'disabled': element_tag.get('disabled'),
-                        'value': element_tag.get('value'),
-                        'name': element_tag.get('name'),
-                    })
-
-                elif tag_name == 'div':
-                    data.update({
-                        'role': element_tag.get('role'),
-                        'contenteditable': element_tag.get('contenteditable'),
-                        'draggable': element_tag.get('draggable'),
-                        'tabindex': element_tag.get('tabindex'),
-                        'hidden': element_tag.get('hidden'),
-                        'title': element_tag.get('title'),
-                        'name': element_tag.get('name'),
-                    })
-
-                elif tag_name == 'input':
-                    data.update({
-                        'type': element_tag.get('type'),
-                        'name': element_tag.get('name'),
-                        'value': element_tag.get('value'),
-                        'placeholder': element_tag.get('placeholder'),
-                        'disabled': element_tag.get('disabled'),
-                        'required': element_tag.get('required'),
-                        'readonly': element_tag.get('readonly'),
-                        'autocomplete': element_tag.get('autocomplete'),
-                        'maxlength': element_tag.get('maxlength'),
-                        'min': element_tag.get('min'),
-                        'max': element_tag.get('max'),
-                        'step': element_tag.get('step'),
-                    })
-
-                elif tag_name == 'select':
-                    data.update({
-                        'name': element_tag.get('name'),
-                        'size': element_tag.get('size'),
-                        'multiple': element_tag.get('multiple'),
-                        'disabled': element_tag.get('disabled'),
-                        'autofocus': element_tag.get('autofocus'),
-                        'required': element_tag.get('required'),
-                        'form': element_tag.get('form'),
-                    })
-
-                elif tag_name == 'textarea':
-                    data.update({
-                        'name': element_tag.get('name'),
-                        'rows': element_tag.get('rows'),
-                        'cols': element_tag.get('cols'),
-                        'disabled': element_tag.get('disabled'),
-                        'readonly': element_tag.get('readonly'),
-                        'placeholder': element_tag.get('placeholder'),
-                        'maxlength': element_tag.get('maxlength'),
-                        'autofocus': element_tag.get('autofocus'),
-                        'wrap': element_tag.get('wrap'),
-                        'form': element_tag.get('form'),
-                    })
-
-                # 데이터 리스트에 추가
-                all_data.append(data)
-
-            except StaleElementReferenceException:
-                continue  # 오류 발생 시 다음 요소로 넘어감
-            except Exception as e:
-                continue  # 다른 예외 발생 시에도 넘어감
-
-    # 브라우저 닫기
+    # 드라이버 종료
     driver.quit()
 
-    return all_data
+    return data_rows

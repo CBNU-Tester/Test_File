@@ -11,6 +11,7 @@ from .selenium_list import (
     process_click_xpath_div, process_click_xpath_iframe,
     process_send_xpath
 )
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -78,10 +79,14 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                 chrome_options.add_argument("--no-sandbox")  # 옵션 추가 (일부 환경에서는 필요)
                 chrome_options.add_argument("--disable-dev-shm-usage")  # 공유 메모리 사용 비활성화 (리소스 절약)
                 
-                driver = webdriver.Remote(
-                    command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
-                    options=chrome_options
-                )
+                # 원격 서버 사용시의 셋팅
+                # driver = webdriver.Remote(
+                #     command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
+                #     options=chrome_options
+                # )
+
+                # 로컬에서 사용시의 셋팅
+                driver = webdriver.Chrome(options=chrome_options)
                 main_url = data.get('main_url', '')
                 driver.get(main_url)
 
@@ -254,17 +259,19 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
         elif action_type == 'ai':
             url = data.get('url', '')
-            data =create_main(url)
+            search_term = data.get('search_term', '')
+            
+            data =create_main(url,search_term)
 
             tc_objects = []
 
             for item in data:
                 tc_data = {
-                    'tc_type': item.get('type_', None),
-                    'tc_url': item.get('url', None),
-                    'tc_target': item.get('xPath', None),
-                    'tc_input': None,
-                    'tc_result': item.get('href', None),
+                    'tc_type': item.get('Type', None),
+                    'tc_url': item.get('url', url),
+                    'tc_target': item.get('XPath', None),
+                    'tc_input': item.get('Input', None),
+                    'tc_result': item.get('Result', None),
                 }
                 tc_objects.append(tc_data)
 
