@@ -35,6 +35,8 @@ from django.db.models.functions import TruncDate
 from .modelCode.main import create_main
 from dotenv import load_dotenv
 import os
+from django.core.paginator import Paginator
+from django.shortcuts import render
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -75,7 +77,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
                 chrome_options = Options()
                 chrome_options.add_experimental_option("detach", True)
-                chrome_options.add_argument("--headless")  # Headless 모드 추가
+                #chrome_options.add_argument("--headless")  # Headless 모드 추가
                 chrome_options.add_argument("--no-sandbox")  # 옵션 추가 (일부 환경에서는 필요)
                 chrome_options.add_argument("--disable-dev-shm-usage")  # 공유 메모리 사용 비활성화 (리소스 절약)
                 
@@ -273,6 +275,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                     'tc_input': item.get('Input', None),
                     'tc_result': item.get('Result', None),
                 }
+                print(tc_data)
                 tc_objects.append(tc_data)
 
             return JsonResponse({'data': list(tc_objects)})
@@ -280,15 +283,22 @@ class ProcessView(LoginRequiredMixin, TemplateView):
         else:
             return JsonResponse({'error': 'Unsupported action type'}, status=400)
 
+
 class ProcessListView(LoginRequiredMixin, TemplateView):
     template_name = 'processList.html'
 
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
-        # 사용자와 연결된 테스트 케이스 목록 가져오기
+        # Get the list of test cases for the user
         tests = TcList.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name').distinct()
-        # 테스트 케이스 목록을 템플릿으로 전달
-        return self.render_to_response({'tests': tests})
+        
+        # Set up pagination
+        paginator = Paginator(tests, 10)  # Show 10 test cases per page
+        page_number = request.GET.get('page')  # Get the current page number from the request
+        page_obj = paginator.get_page(page_number)  # Get the relevant page object
+        
+        # Pass the page object to the template
+        return self.render_to_response({'page_obj': page_obj})
 
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
@@ -365,25 +375,35 @@ class ScheduleView(LoginRequiredMixin, TemplateView):
 class ScheduleListView(LoginRequiredMixin, TemplateView):
     template_name = 'scheduleList.html'
 
+
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
         # Fetch schedules associated with the user
         schedules = Ts.objects.filter(tc_uid=user_id).order_by('-ts_time').values_list()
 
+        # Implementing pagination
+        paginator = Paginator(schedules, 10)  # Show 10 schedules per page
+        page_number = request.GET.get('page')  # Get the current page number from the request
+        page_obj = paginator.get_page(page_number)
+
         schedule_data = []
 
-        for schedule in schedules:
-            test_name = TcList.objects.filter(tc_pid=schedule[1]).values_list('tc_name')
+        for schedule in page_obj:
+            test_name = TcList.objects.filter(tc_pid=schedule[1]).values_list('tc_name', flat=True)
             schedule_info = {
                 'ts_num': schedule[0],
                 'tc_pid': schedule[1],
                 'ts_time': schedule[3],
-                'test_name': test_name[0][0]
+                'test_name': test_name[0] if test_name else "Unknown"
             }
             schedule_data.append(schedule_info)
-        
-        return self.render_to_response({'schedules': schedule_data, 'test_data' : TcList.objects.filter(tc_uid=user_id).values_list('tc_pid','tc_name')})
 
+        return self.render_to_response({
+            'schedules': schedule_data,
+            'test_data': TcList.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name'),
+            'page_obj': page_obj,  # Pass the page object to the template
+        })
+    @csrf_exempt
     def post(self, request):
         user_id = request.user.id
         action = request.POST.get('action', '')
@@ -404,13 +424,14 @@ class ScheduleListView(LoginRequiredMixin, TemplateView):
             ts_time = request.POST.get('schedule_time')
             tc_pid = request.POST.get('tc_pid')
             tc_pid = get_object_or_404(TcList, tc_pid=tc_pid, tc_uid=user_id)
-
+            print(ts_num,ts_time)
             try:
                 # Update the specified schedule with the new time and test case ID
                 schedule = Ts.objects.get(ts_num=ts_num, tc_uid=user_id)
                 schedule.ts_time = ts_time
                 schedule.tc_pid = tc_pid
                 schedule.save()
+                print("Schedule updated successfully.")
                 return JsonResponse({'success': True})
             except Ts.DoesNotExist:
                 return JsonResponse({'success': False, 'message': 'Schedule not found.'})
@@ -431,25 +452,28 @@ class ResultListView(LoginRequiredMixin, TemplateView):
         # 사용자와 연결된 테스트 케이스 목록 가져오기
         tests = TcResult.objects.filter(test_uid=user_id).order_by('-test_time').values_list()
         
-        #맨 마지막에 TC_LIST에서 가져온테스트 이름 추가하기
-        
-        test_data = []
+        # 페이지네이션 설정
+        paginator = Paginator(tests, 10)  # 페이지당 10개의 테스트 케이스
+        page_number = request.GET.get('page')  # 쿼리스트링에서 페이지 번호 가져오기
+        page_obj = paginator.get_page(page_number)
 
-        for test in tests:
-            test_name = TcList.objects.filter(tc_pid=test[1]).values_list('tc_name')
+        test_data = []
+        for test in page_obj:
+            test_name = TcList.objects.filter(tc_pid=test[1]).values_list('tc_name', flat=True).first()
             test_info = {
                 'result_id': test[0],
                 'test_pid': test[1],
                 'test_uid': test[5],
                 'failure_reason': test[3],
                 'test_time': test[4],
-                'test_result' : test[2],
-                'test_name' : test_name[0][0]
+                'test_result': test[2],
+                'test_name': test_name
             }
             test_data.append(test_info)
-        # 테스트 케이스 목록을 템플릿으로 전달
-        return self.render_to_response({'tests': test_data})
-    
+        
+        # 페이지네이션 정보를 포함하여 테스트 케이스 목록을 템플릿으로 전달
+        return self.render_to_response({'tests': test_data, 'page_obj': page_obj})
+
     def post(self, request):
         user_id = request.user.id
         action = request.POST.get('action', '')

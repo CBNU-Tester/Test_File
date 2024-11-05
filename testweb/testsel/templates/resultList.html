@@ -14,7 +14,7 @@
         color: #343a40;       
         font-weight: bold;
         margin-bottom: 20px;
-        align-content: center;
+        text-align: center;
     }
     .test-case-list {
         list-style-type: none;
@@ -59,7 +59,7 @@
         <div class="col-lg-8">
             <ul class="list-group" id="test-case-list">
                 {% for test in tests %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center mb-3 shadow-sm" data-result-pid={{test.result_id}}>
+                    <li class="list-group-item d-flex justify-content-between align-items-center mb-3 shadow-sm" data-result-pid="{{ test.result_id }}">
                         <div>
                             <h5 class="mb-1">테스트 이름: {{ test.test_name }}</h5>
                             <p class="mb-1 text-muted">시간: {{ test.test_time }}</p>
@@ -82,9 +82,49 @@
                     </li>
                 {% endfor %}
             </ul>
+
+            <!-- 페이지네이션 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
     </div>
 </div>
+
 <!-- 설명 modal -->
 <div class="modal fade" id="viewTestDescriptionModal" tabindex="-1" role="dialog" aria-labelledby="viewTestDescriptionModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -139,12 +179,12 @@
             }
         });
 
-        // 설명 버튼 클릭 처리s
+        // 설명 버튼 클릭 처리
         $('.view-description-btn').click(function(e) {
             e.stopPropagation();  // 클릭 이벤트 전파 중단
             var liElement = $(this).closest('li');
             var result_id = liElement.data('result-pid');
-;
+
             $.ajax({
                 url: "{% url 'result_list_view' %}",
                 type: 'POST',
@@ -155,18 +195,13 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        console.log(response.description);
                         $('#test-description-text').text(response.description);
                         $('#viewTestDescriptionModal').modal('show');
                     } else {
                         alert('설명을 불러오는데 실패했습니다.');
                     }
                 },
-
-            })
-            // 모달에 설명 설정
-            //$('#test-description-text').text(description);
-            //$('#viewTestDescriptionModal').modal('show');
+            });
         });
     });
 </script>
