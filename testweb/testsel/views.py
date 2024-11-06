@@ -77,19 +77,31 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
                 chrome_options = Options()
                 chrome_options.add_experimental_option("detach", True)
-                #chrome_options.add_argument("--headless")  # Headless 모드 추가
+                chrome_options.add_argument("--headless")  # Headless 모드 추가
                 chrome_options.add_argument("--no-sandbox")  # 옵션 추가 (일부 환경에서는 필요)
                 chrome_options.add_argument("--disable-dev-shm-usage")  # 공유 메모리 사용 비활성화 (리소스 절약)
                 
                 # 원격 서버 사용시의 셋팅
-                # driver = webdriver.Remote(
-                #     command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
-                #     options=chrome_options
-                # )
+                driver = webdriver.Remote(
+                    command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
+                    options=chrome_options
+                )
 
                 # 로컬에서 사용시의 셋팅
-                driver = webdriver.Chrome(options=chrome_options)
+                #driver = webdriver.Chrome(options=chrome_options)
+
                 main_url = data.get('main_url', '')
+                
+                # URL에 https://가 붙어있지 않은 경우 붙여주기
+                if not main_url.startswith('http'):
+                    main_url = 'https://' + main_url
+
+                # URL에 www가 없으면 붙여주기
+                if not main_url.startswith('https://www.'):
+                    main_url = main_url.replace('https://', 'https://www.')
+                
+                
+                
                 driver.get(main_url)
 
                 try:
@@ -403,6 +415,7 @@ class ScheduleListView(LoginRequiredMixin, TemplateView):
             'test_data': TcList.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name'),
             'page_obj': page_obj,  # Pass the page object to the template
         })
+    
     @csrf_exempt
     def post(self, request):
         user_id = request.user.id
@@ -424,7 +437,7 @@ class ScheduleListView(LoginRequiredMixin, TemplateView):
             ts_time = request.POST.get('schedule_time')
             tc_pid = request.POST.get('tc_pid')
             tc_pid = get_object_or_404(TcList, tc_pid=tc_pid, tc_uid=user_id)
-            print(ts_num,ts_time)
+            
             try:
                 # Update the specified schedule with the new time and test case ID
                 schedule = Ts.objects.get(ts_num=ts_num, tc_uid=user_id)

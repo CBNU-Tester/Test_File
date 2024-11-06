@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
-
+import os
 
 def get_xpath(element):
     script = """
@@ -39,8 +39,15 @@ def extract_data(urls, search_term):
     # Chrome 옵션 설정
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # 화면 표시 없이 실행
-    driver = webdriver.Chrome(options=chrome_options)
+    
+    # 로컬에서 실행시의 셋팅
+    # driver = webdriver.Chrome(options=chrome_options)
 
+    # 원격 서버 사용시의 셋팅
+    driver = webdriver.Remote(
+        command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
+        options=chrome_options
+    )
     # 이미 처리된 요소의 XPath를 추적하기 위한 세트
     processed_xpaths = set()
     data_rows = []
