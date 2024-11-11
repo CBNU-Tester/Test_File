@@ -36,6 +36,7 @@ from .modelCode.main import create_main
 from dotenv import load_dotenv
 import os
 from django.core.paginator import Paginator
+import time
 
 class BaseView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
@@ -67,12 +68,10 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
                 # Get tc_pid from query parameters
                 tc_pid = data.get('tc_pid')
+                tc_instance = None
 
-                if not tc_pid:
-                    return JsonResponse({'error': 'Missing tc_pid parameter'}, status=400)
-                
-                # Fetch test case
-                tc_instance = get_object_or_404(TcList, tc_pid=tc_pid)
+                if tc_pid:
+                    tc_instance = get_object_or_404(TcList, tc_pid=tc_pid)
 
                 chrome_options = Options()
                 chrome_options.add_experimental_option("detach", True)
@@ -137,6 +136,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                         else:
                             processed_data = f"Unsupported process type: {process_type}"
 
+                        time.sleep(1)
                         # Append processed data to list
                         processed_data_list.append({
                             'type': process_type,
@@ -156,12 +156,14 @@ class ProcessView(LoginRequiredMixin, TemplateView):
                             failure_reason = "; ".join(failure_reasons)
 
                             # Save results
-                            TcResult.objects.create(
-                                test_pid=tc_instance,
-                                test_uid=get_object_or_404(AuthUser, pk=user_id),
-                                test_result=test_final_result,
-                                failure_reason=failure_reason
-                            )
+
+                            if tc_instance:
+                                TcResult.objects.create(
+                                    test_pid=tc_instance,
+                                    test_uid=get_object_or_404(AuthUser, pk=user_id),
+                                    test_result=test_final_result,
+                                    failure_reason=failure_reason
+                                )
 
                             driver.quit()
                             return JsonResponse({'processed_data_list': processed_data_list, 'error': failure_reason}, status=200)
@@ -590,6 +592,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         labels = ['성공', '실패']
         values = [success_tests, failed_tests]
         pie_fig = px.pie(names=labels, values=values, title="테스트 결과 성공/실패 비율")
+        pie_fig.update_traces(marker=dict(colors=['#87CEEB', '#FF7F7F']))  # 성공을 하늘색, 실패를 연한 빨강색으로 설정
         pie_fig.update_layout(title_x=0.5)  # 제목을 가운데 정렬
         pie_chart = pie_fig.to_html(full_html=False)
 

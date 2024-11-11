@@ -19,9 +19,9 @@ def create_main(url, search_term):
         return []
 
     texts = data['HTML'].tolist()
-    tokenizer_output_dir = r'C:\Users\Administrator\Documents\GitHub\Test_File\testweb\testsel\modelCode\result\pre_train_html_tokenizer'
-    model_output_dir = r'C:\Users\Administrator\Documents\GitHub\Test_File\testweb\testsel\modelCode\result\pre_train_html'
-    model_path = r'C:\Users\Administrator\Documents\GitHub\Test_File\testweb\testsel\modelCode\output\best_model_updated1.pth'
+    tokenizer_output_dir = r'/Users/idongmin/Desktop/final_Project/Test_File/testweb/testsel/modelCode/result/pre_train_html_tokenizer'
+    model_output_dir = r'/Users/idongmin/Desktop/final_Project/Test_File/testweb/testsel/modelCode/result/pre_train_html'
+    model_path = r'/Users/idongmin/Desktop/final_Project/Test_File/testweb/testsel/modelCode/best_model_updated1.pth'
 
     tokenizer = XLMRobertaTokenizer.from_pretrained(tokenizer_output_dir)
     base_model = XLMRobertaModel.from_pretrained(model_output_dir)

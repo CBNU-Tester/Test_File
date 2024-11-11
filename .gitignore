@@ -170,13 +170,11 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-<<<<<<< HEAD
-=======
-# Ignore PyTorch model files
+# Ignore PyTorch model files 모델관련 부분
 /testsel/modelCode/*.pth
 *.pth
+/testweb/testsel/modelCode/result
 
->>>>>>> 9a58441 (add : AI기능추가)
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

@@ -37,19 +37,17 @@ def process_click_xpath(driver, url, target, input, result):
             EC.presence_of_element_located((By.XPATH, target))
         )
         
-        # 요소가 클릭 가능한지 확인
-        if WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, target))):
-            # 클릭 가능한 상태라면 일반적인 클릭
+        try:
+            # 요소가 클릭 가능한지 확인
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, target)))
+            # 일반적인 클릭 시도
             target_element.click()
             processed_data = "성공"
-        else:
-            # 클릭할 수 없다면 존재 여부를 확인하고 강제로 클릭
-            if target_element.is_displayed():  # 요소가 화면에 표시되었는지 확인
-                # 요소가 보이면 JavaScript를 사용하여 클릭을 강제로 시도
-                driver.execute_script("arguments[0].click();", target_element)
-                processed_data = "성공 (JavaScript로 강제 클릭)"
-            else:
-                processed_data = "요소가 보이지 않음"
+        except TimeoutException:
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", target_element)
+            time.sleep(1)  # Optional delay
+            driver.execute_script("arguments[0].click();", target_element)
+            processed_data = "성공 (JavaScript로 강제 클릭)"
                 
         # 클릭 후 URL 변경 등을 확인하는 부분을 추가할 수 있음
         time.sleep(2)  # Optional delay
@@ -70,21 +68,18 @@ def process_click_xpath_otherurl(driver, url, target, input, expected_url):
             EC.presence_of_element_located((By.XPATH, target))
         )
         
-        # 요소가 클릭 가능한지 확인
-        if WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, target))):
+        try:
+            # 요소가 클릭 가능한지 확인
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, target)))
             # 일반적인 클릭 시도
+            print("클릭가능")
             target_element.click()
             print("일반 클릭 시도")
-        else:
-            # 요소가 화면에 보이는지 확인 후 강제 클릭 시도
-            if target_element.is_displayed():
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", target_element)
-                time.sleep(1)  # Optional delay
-                driver.execute_script("arguments[0].click();", target_element)
-                print("JavaScript 클릭 시도")
-            else:
-                processed_data = "요소가 보이지 않음"
-                return processed_data
+        except TimeoutException:
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", target_element)
+            time.sleep(1)  # Optional delay
+            driver.execute_script("arguments[0].click();", target_element)
+            print("JavaScript 클릭 시도")
 
         # URL 변경 확인 - 최종 URL에 도달할 때까지 확인
         timeout = 10  # 최대 대기 시간 (초)
