@@ -18,9 +18,13 @@
 ## Stack
 - Django(ver 5.0)
 - Chrome Extension(if you want to use, download from chrome extension. not yet published) 
-- Rule based System 
 - Mysql
 - Git Hook
+- HuggingFace
+
+## Model URL
+- 사전학습된 모델 및 토크나이저 : https://drive.google.com/file/d/16zEsgrFyIM0fZZ2HEj9URNNqvrr102_H/view?usp=sharing
+- 파인튜닝된 모델 : https://drive.google.com/file/d/1VmOe7rm8aKYJCVn4Visc87okw94fkiYA/view?usp=sharing
 
 ---
 **Sponser**
