@@ -37,7 +37,15 @@ def get_xpath(element):
 def extract_data(urls, search_term):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    driver = webdriver.Chrome(options=chrome_options)
+
+    ##원격 서버 사용시의 셋팅
+    driver = webdriver.Remote(
+        command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
+        options=chrome_options
+    )
+
+    ##로컬에서 사용시의 셋팅
+    #driver = webdriver.Chrome(options=chrome_options)
 
     data_rows = []
     for url in urls:
