@@ -56,7 +56,18 @@ def check_and_run_scheduled_tests():
 
         chrome_options = Options()
         chrome_options.add_experimental_option("detach", True)
-        driver = webdriver.Chrome(options=chrome_options)
+        chrome_options.add_argument("--headless")  # Headless 모드 추가
+        chrome_options.add_argument("--no-sandbox")  # 옵션 추가 (일부 환경에서는 필요)
+        chrome_options.add_argument("--disable-dev-shm-usage")  # 공유 메모리 사용 비활성화 (리소스 절약)
+        
+
+        ##원격 서버 사용시의 셋팅
+        driver = webdriver.Remote(
+            command_executor='http://' + os.getenv("DB_HOST") + ":" +os.getenv("SEL_PORT") + '/wd/hub',
+            options=chrome_options
+        )
+        
+        #driver = webdriver.Chrome(options=chrome_options)
 
         main_page_status = "성공"
         all_success = True
