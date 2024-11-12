@@ -96,7 +96,7 @@ class ProcessView(LoginRequiredMixin, TemplateView):
 
             
                 # URL에 www가 없으면 붙여주기 (단, URL에 '.'이 3개 이상 있는 경우 제외)
-                if main_url.count('.') < 3 and not main_url.startswith('https://www.'):
+                if main_url.count('.') < 2 and not main_url.startswith('https://www.'):
                     main_url = main_url.replace('https://', 'https://www.')
                 
                 
@@ -318,8 +318,7 @@ class ProcessListView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
         # Get the list of test cases for the user
-        tests = TcList.objects.filter(tc_uid=user_id).values_list('tc_pid', 'tc_name').distinct()
-        
+        tests = TcList.objects.filter(tc_uid=user_id).order_by('-tc_pid').values_list('tc_pid', 'tc_name').distinct()
         # Set up pagination
         paginator = Paginator(tests, 10)  # Show 10 test cases per page
         page_number = request.GET.get('page')  # Get the current page number from the request
